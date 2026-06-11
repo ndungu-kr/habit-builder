@@ -15,16 +15,27 @@ interface MissedDayInfo {
   freezesAvailable: number;
 }
 
+export interface PendingMilestone {
+  type: 'streak' | 'habit';
+  count: number;
+  habitName?: string;
+  habitColor?: string;
+  freezeEarned?: boolean;
+  freezeCount?: number;
+}
+
 interface StreakState {
   streak: UnifiedStreak | null;
   isLoading: boolean;
   missedDayInfo: MissedDayInfo | null;
+  pendingMilestone: PendingMilestone | null;
   fetchStreak: () => Promise<void>;
   incrementStreak: () => Promise<void>;
   useFreeze: (dateFrozen: string) => Promise<void>;
   resetStreak: () => Promise<void>;
   checkYesterdayMissed: (habits: Habit[]) => Promise<boolean>;
   clearMissedDay: () => void;
+  setPendingMilestone: (m: PendingMilestone | null) => void;
 }
 
 function todayStr(): string {
@@ -51,6 +62,7 @@ export const useStreakStore = create<StreakState>((set, get) => ({
   streak: null,
   isLoading: false,
   missedDayInfo: null,
+  pendingMilestone: null,
 
   fetchStreak: async () => {
     set({ isLoading: true });
@@ -106,6 +118,15 @@ export const useStreakStore = create<StreakState>((set, get) => ({
           { user_id: streak.user_id, streak_count: milestone },
           { onConflict: 'user_id,streak_count' }
         );
+      // Signal the UI to show celebration
+      set({
+        pendingMilestone: {
+          type: 'streak',
+          count: milestone,
+          freezeEarned: didEarnFreeze(newStreak) && streak.freezes_available < 3,
+          freezeCount: newFreezes,
+        },
+      });
     }
   },
 
@@ -211,4 +232,5 @@ export const useStreakStore = create<StreakState>((set, get) => ({
 
   // Clear missed day info after the flow is complete
   clearMissedDay: () => set({ missedDayInfo: null }),
+  setPendingMilestone: (m) => set({ pendingMilestone: m }),
 }));
