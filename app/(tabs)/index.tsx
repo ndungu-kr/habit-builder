@@ -170,6 +170,65 @@ function HabitCard({
   );
 }
 
+// Progress summary + evening check-in prompt
+function SummaryFooter({
+  doneCount,
+  totalCount,
+  onCheckIn,
+}: {
+  doneCount: number;
+  totalCount: number;
+  onCheckIn: () => void;
+}) {
+  const { colors } = useTheme();
+  const pct = totalCount > 0 ? doneCount / totalCount : 0;
+  // Show check-in prompt in the evening (after 5pm)
+  const showCheckIn = new Date().getHours() >= 17;
+
+  return (
+    <View style={[styles.summaryCard, { backgroundColor: colors.surface }]}>
+      <View style={styles.summaryTop}>
+        <View>
+          <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Today</Text>
+          <Text style={[styles.summaryProgress, { color: colors.textPrimary }]}>
+            {doneCount} of {totalCount} habits complete
+          </Text>
+        </View>
+        <Text style={[styles.summaryPct, { color: colors.accent }]}>
+          {Math.round(pct * 100)}%
+        </Text>
+      </View>
+      {/* Progress bar */}
+      <View style={[styles.progressTrack, { backgroundColor: colors.surfaceAlt }]}>
+        <View
+          style={[styles.progressFill, { backgroundColor: colors.accent, width: `${pct * 100}%` }]}
+        />
+      </View>
+      {/* Check-in prompt - shows after 5pm */}
+      {showCheckIn && (
+        <TouchableOpacity
+          style={[styles.checkInPrompt, { borderTopColor: colors.border }]}
+          onPress={onCheckIn}
+          activeOpacity={0.7}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.checkInTitle, { color: colors.textPrimary }]}>
+              Ready to reflect on your day?
+            </Text>
+            <Text style={[styles.checkInSub, { color: colors.textSecondary }]}>
+              Tonight's check-in is waiting.
+            </Text>
+          </View>
+          <View style={styles.checkInAction}>
+            <Text style={[styles.checkInBegin, { color: colors.accent }]}>Begin</Text>
+            <IconChevronRight size={16} color={colors.accent} />
+          </View>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+}
+
 // Fresh start hero card when streak is 0
 function FreshStartHero() {
   const { colors } = useTheme();
@@ -307,6 +366,15 @@ export default function HomeScreen() {
               onPress={() => openSheet(item)}
             />
           )}
+          ListFooterComponent={
+            todaysHabits.length > 0 ? (
+              <SummaryFooter
+                doneCount={todaysCompletions.filter((c) => c.status === 'completed' || c.status === 'partial').length}
+                totalCount={todaysHabits.length}
+                onCheckIn={() => router.push('/checkin')}
+              />
+            ) : null
+          }
         />
       )}
 
@@ -584,5 +652,76 @@ const styles = StyleSheet.create({
   emptyText: {
     ...typography.body,
     textAlign: 'center',
+  },
+
+    // Summary footer
+  summaryCard: {
+    marginHorizontal: 20,
+    borderRadius: 16,
+    padding: 16,
+    paddingHorizontal: 18,
+  },
+  summaryTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  summaryLabel: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 12,
+    letterSpacing: 1.3,
+    textTransform: 'uppercase',
+  },
+  summaryProgress: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 16,
+    marginTop: 4,
+    letterSpacing: -0.1,
+  },
+  summaryPct: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 22,
+    letterSpacing: -0.4,
+  },
+  progressTrack: {
+    marginTop: 12,
+    height: 6,
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 999,
+  },
+  checkInPrompt: {
+    marginTop: 14,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  checkInTitle: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 14.5,
+    letterSpacing: -0.05,
+  },
+  checkInSub: {
+    fontFamily: 'Nunito_500Medium',
+    fontSize: 12.5,
+    marginTop: 2,
+  },
+  checkInAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    padding: 8,
+    paddingHorizontal: 4,
+  },
+  checkInBegin: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 14,
+    letterSpacing: -0.1,
   },
 });

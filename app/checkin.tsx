@@ -637,7 +637,7 @@ export default function CheckInScreen() {
         status={current.status}
         step={currentIndex + 2}
         totalSteps={totalSteps}
-        completion={current.completion}
+        completion={current.completion ?? null}
         onNext={handleNext}
         onClose={handleClose}
         onSave={handleSaveReflection}
