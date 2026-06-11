@@ -36,6 +36,13 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="pledge"
+        options={{
+          title: 'Pledge',
+          tabBarIcon: () => <Text style={{ fontSize: 20 }}>🤝</Text>,
+        }}
+      />
+      <Tabs.Screen
         name="journey"
         options={{
           title: 'Journey',
