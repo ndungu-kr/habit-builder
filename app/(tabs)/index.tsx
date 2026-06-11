@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useTheme } from '@/providers/ThemeProvider';
 import { typography } from '@/theme/typography';
 import { spacing, radii, layout } from '@/theme/spacing';
 import { useHabitStore } from '@/stores/habitStore';
+import { usePledgeStore } from '@/stores/pledgeStore';
 import { Habit } from '@/types';
 
 function HabitCard({ habit }: { habit: Habit }) {
@@ -28,10 +30,13 @@ function HabitCard({ habit }: { habit: Habit }) {
 
 export default function HomeScreen() {
   const { colors } = useTheme();
+  const router = useRouter();
   const { habits, isLoading, fetchHabits } = useHabitStore();
+  const { hasPledgedToday, fetchTodaysPledges } = usePledgeStore();
 
   useEffect(() => {
     fetchHabits();
+    fetchTodaysPledges();
   }, []);
 
   return (
@@ -44,6 +49,18 @@ export default function HomeScreen() {
         <Text style={[styles.empty, { color: colors.textSecondary }]}>
           No habits yet - tap + to create one
         </Text>
+      ) : !hasPledgedToday ? (
+        <View style={styles.pledgePrompt}>
+          <Text style={[styles.promptText, { color: colors.textSecondary }]}>
+            You haven't pledged today yet
+          </Text>
+          <TouchableOpacity
+            style={[styles.pledgeButton, { backgroundColor: colors.accent }]}
+            onPress={() => router.navigate('/(tabs)/pledge')}
+          >
+            <Text style={styles.pledgeButtonText}>Make your pledge</Text>
+          </TouchableOpacity>
+        </View>
       ) : (
         <FlatList
           data={habits}
@@ -94,5 +111,23 @@ const styles = StyleSheet.create({
   },
   habitGoal: {
     ...typography.caption,
+  },
+  pledgePrompt: {
+    alignItems: 'center',
+    marginTop: spacing.xxxxl,
+  },
+  promptText: {
+    ...typography.body,
+    marginBottom: spacing.lg,
+  },
+  pledgeButton: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xxl,
+    borderRadius: radii.button,
+  },
+  pledgeButtonText: {
+    ...typography.body,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });
