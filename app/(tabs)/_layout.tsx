@@ -1,61 +1,66 @@
-import { Text } from 'react-native';
-import { Tabs } from 'expo-router';
-import { useTheme } from '@/providers/ThemeProvider';
-import { typography } from '@/theme/typography';
+import { useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
+import { Slot, useRouter, useSegments } from 'expo-router';
+import {
+  useFonts,
+  Nunito_400Regular,
+  Nunito_500Medium,
+  Nunito_600SemiBold,
+  Nunito_700Bold,
+} from '@expo-google-fonts/nunito';
+import { ThemeProvider, useTheme } from '@/providers/ThemeProvider';
+import { useAuthStore } from '@/stores/authStore';
 
-export default function TabsLayout() {
+function RootLayoutNav() {
   const { colors } = useTheme();
+  const router = useRouter();
+  const segments = useSegments();
+  const { session, initialized } = useAuthStore();
+
+  useEffect(() => {
+    if (!initialized) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (!session && !inAuthGroup) {
+      router.replace('/(auth)/login');
+    } else if (session && inAuthGroup) {
+      router.replace('/(tabs)');
+    }
+  }, [session, initialized, segments]);
+
+  if (!initialized) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg }}>
+        <ActivityIndicator size="large" color={colors.accent} />
+      </View>
+    );
+  }
+
+  return <Slot />;
+}
+
+export default function RootLayout() {
+  const initialize = useAuthStore((state) => state.initialize);
+
+  const [fontsLoaded] = useFonts({
+    Nunito_400Regular,
+    Nunito_500Medium,
+    Nunito_600SemiBold,
+    Nunito_700Bold,
+  });
+
+  useEffect(() => {
+    initialize();
+  }, []);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: colors.textSecondary,
-        tabBarStyle: {
-          backgroundColor: colors.surface,
-          borderTopColor: colors.border,
-        },
-        tabBarLabelStyle: {
-          ...typography.small,
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: () => <Text style={{ fontSize: 20 }}>🏠</Text>,
-        }}
-      />
-      <Tabs.Screen
-        name="create"
-        options={{
-          title: 'Create',
-          tabBarIcon: () => <Text style={{ fontSize: 24 }}>+</Text>,
-        }}
-      />
-      <Tabs.Screen
-        name="pledge"
-        options={{
-          title: 'Pledge',
-          tabBarIcon: () => <Text style={{ fontSize: 20 }}>🤝</Text>,
-        }}
-      />
-      <Tabs.Screen
-        name="journey"
-        options={{
-          title: 'Journey',
-          tabBarIcon: () => <Text style={{ fontSize: 20 }}>📊</Text>,
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: 'Settings',
-          tabBarIcon: () => <Text style={{ fontSize: 20 }}>⚙️</Text>,
-        }}
-      />
-    </Tabs>
+    <ThemeProvider>
+      <RootLayoutNav />
+    </ThemeProvider>
   );
 }

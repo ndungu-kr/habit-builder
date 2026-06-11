@@ -1,47 +1,46 @@
-// Typography scale from the design brief
-// Each style has a role (what it's used for), not just a size
-// This keeps text consistent: every headline looks the same across all screens
+// Nunito font scale - each weight is a separate font file in React Native
+// so we reference the loaded font name directly instead of using fontWeight
 
 export const typography = {
-  // Display - the biggest text, used sparingly: milestone celebrations, streak count
+  // Milestone celebrations, streak count
   display: {
+    fontFamily: 'Nunito_600SemiBold',
     fontSize: 30,
-    fontWeight: '600' as const,  // SemiBold
-    lineHeight: 39,              // 1.3x the font size
+    lineHeight: 39,
   },
 
-  // H1 - screen headlines like "Good morning" or "Let's look back at today"
+  // Screen headlines - "Good morning", "Today's Pledge"
   h1: {
+    fontFamily: 'Nunito_600SemiBold',
     fontSize: 24,
-    fontWeight: '600' as const,
     lineHeight: 31.2,
   },
 
-  // H2 - section headers, habit names on cards
+  // Section headers, habit names on cards
   h2: {
+    fontFamily: 'Nunito_500Medium',
     fontSize: 20,
-    fontWeight: '500' as const,  // Medium
     lineHeight: 26,
   },
 
-  // Body - the workhorse: descriptions, reflections, pledge statements
+  // Body text, reflections, descriptions
   body: {
+    fontFamily: 'Nunito_400Regular',
     fontSize: 16,
-    fontWeight: '400' as const,  // Regular
-    lineHeight: 24,              // 1.5x - more breathing room for readable paragraphs
+    lineHeight: 24,
   },
 
-  // Caption - labels, "times shown up" counters, timestamps
+  // Labels, "times shown up", timestamps
   caption: {
+    fontFamily: 'Nunito_400Regular',
     fontSize: 14,
-    fontWeight: '400' as const,
     lineHeight: 21,
   },
 
-  // Small - badges, tooltip text, freeze balance display
+  // Badges, tooltip text, freeze balance
   small: {
+    fontFamily: 'Nunito_500Medium',
     fontSize: 12,
-    fontWeight: '500' as const,
     lineHeight: 18,
   },
 };
