@@ -465,6 +465,22 @@ export default function HomeScreen() {
             fetchStreak();
           }}
           onPledgeFirst={() => { closeSheet(); router.push('/pledge'); }}
+          onViewDetails={() => {
+            const h = selectedHabit!;
+            closeSheet();
+            router.push({
+              pathname: '/habit-detail',
+              params: {
+                habitId: h.id,
+                habitName: h.name,
+                habitColor: h.color || '',
+                goalValue: String(h.goal_value),
+                goalUnit: h.goal_unit,
+                scheduleType: h.schedule_type,
+                scheduledDays: (h.scheduled_days || []).join(','),
+              },
+            });
+          }}
         />
       )}
     </View>

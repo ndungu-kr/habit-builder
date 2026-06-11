@@ -25,6 +25,7 @@ interface HabitBottomSheetProps {
   onSkip: () => void;
   onUndo: () => void;
   onPledgeFirst: () => void;
+  onViewDetails: () => void;
 }
 
 // Drag handle at top of sheet
@@ -392,10 +393,12 @@ function SheetCompleted({
   habit,
   onUndo,
   onClose,
+  onViewDetails,
 }: {
   habit: Habit;
   onUndo: () => void;
   onClose: () => void;
+  onViewDetails: () => void;
 }) {
   const { colors } = useTheme();
   const timeStr = new Date().toLocaleTimeString('en-US', {
@@ -437,6 +440,7 @@ function SheetCompleted({
           sublabel="Whys, history, milestones"
           icon={<DetailsIcon color={colors.textSecondary} />}
           chevron
+          onPress={onViewDetails}
         />
         <SheetOption
           label="Undo completion"
@@ -461,6 +465,7 @@ export function HabitBottomSheet({
   onSkip,
   onUndo,
   onPledgeFirst,
+  onViewDetails,
 }: HabitBottomSheetProps) {
   const { colors } = useTheme();
   // Track internal variant so "I did some" can switch to partial view
@@ -517,7 +522,7 @@ export function HabitBottomSheet({
       );
       break;
     case 'completed':
-      body = <SheetCompleted habit={habit} onUndo={handleUndo} onClose={onClose} />;
+      body = <SheetCompleted habit={habit} onUndo={handleUndo} onClose={onClose} onViewDetails={onViewDetails} />;
       break;
   }
 
