@@ -137,3 +137,122 @@ function MissedHabitChip({
     </View>
   );
 }
+
+function MissedAcknowledge({
+  missedHabits,
+  streakValue,
+  freezesAvailable,
+  onUseFreeze,
+  onLetReset,
+}: {
+  missedHabits: { habitName: string; habitColor: string; kind: 'missed' | 'skipped' }[];
+  streakValue: number;
+  freezesAvailable: number;
+  onUseFreeze: () => void;
+  onLetReset: () => void;
+}) {
+  const { colors } = useTheme();
+
+  // Format yesterday's date
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const dateStr = yesterday.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
+
+  return (
+    <View style={{ flex: 1 }}>
+      <View style={{ height: 50 }} />
+      <MDStepHeader current={1} total={3} />
+
+      <View style={{ paddingHorizontal: 24, paddingTop: 24 }}>
+        <Text style={[styles.eyebrow, { color: colors.missed }]}>
+          Yesterday - {dateStr}
+        </Text>
+        <Text style={[styles.title, { color: colors.textPrimary }]}>
+          Yesterday didn't go as planned.
+        </Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+          Everyone misses days. What matters is that you're here now.
+        </Text>
+      </View>
+
+      {/* What was missed */}
+      <View style={{ paddingHorizontal: 24, paddingTop: 22 }}>
+        <View style={[styles.trackedCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.trackedLabel, { color: colors.textSecondary }]}>
+            What we tracked
+          </Text>
+          <View style={{ gap: 8 }}>
+            {missedHabits.map((h) => (
+              <MissedHabitChip
+                key={h.habitName}
+                name={h.habitName}
+                accent={h.habitColor}
+                kind={h.kind}
+              />
+            ))}
+          </View>
+        </View>
+      </View>
+
+      {/* Freeze decision - only if freezes available and streak > 0 */}
+      {freezesAvailable > 0 && streakValue > 0 && (
+        <View style={{ paddingHorizontal: 24, paddingTop: 20 }}>
+          <View style={[styles.decisionCard, { backgroundColor: colors.accentSoft, borderColor: colors.accent + '33' }]}>
+            <View style={styles.decisionRow}>
+              <View style={[styles.decisionIcon, { backgroundColor: colors.bg, borderColor: colors.accent }]}>
+                <IconSnowflake size={22} color={colors.accent} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.decisionTitle, { color: colors.textPrimary }]}>
+                  You have {freezesAvailable} streak freeze{freezesAvailable !== 1 ? 's' : ''}
+                </Text>
+                <Text style={[styles.decisionSub, { color: colors.textSecondary }]}>
+                  Earned every 7 days you show up
+                </Text>
+              </View>
+            </View>
+            <Text style={[styles.decisionBody, { color: colors.textPrimary }]}>
+              Use one to{' '}
+              <Text style={{ fontFamily: 'Nunito_700Bold' }}>
+                hold your {streakValue}-day streak at {streakValue}
+              </Text>
+              , or let it reset clean.
+            </Text>
+          </View>
+        </View>
+      )}
+
+      <View style={{ flex: 1 }} />
+
+      {/* Action buttons */}
+      <View style={[styles.footerActions, { borderTopColor: colors.border }]}>
+        {freezesAvailable > 0 && streakValue > 0 ? (
+          <>
+            <MDPrimaryCTA
+              label="Use freeze"
+              sub={`Your streak holds at ${streakValue}`}
+              onPress={onUseFreeze}
+            />
+            <View style={{ height: 10 }} />
+            <MDPrimaryCTA
+              label="Let it reset"
+              sub="Lifetime stats stay"
+              onPress={onLetReset}
+              dim
+            />
+          </>
+        ) : (
+          <MDPrimaryCTA
+            label="Start fresh"
+            sub="Your lifetime stats stay with you"
+            onPress={onLetReset}
+          />
+        )}
+      </View>
+    </View>
+  );
+}
