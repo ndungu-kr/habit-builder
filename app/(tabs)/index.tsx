@@ -16,6 +16,7 @@ import { usePledgeStore } from '@/stores/pledgeStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useCompletionStore } from '@/stores/completionStore';
 import { HabitBottomSheet } from '@/components/HabitBottomSheet';
+import { useStreakStore } from '@/stores/streakStore';
 import {
   IconFlame,
   IconSnowflake,
@@ -46,10 +47,11 @@ function getFormattedDate(): string {
 // Top bar - greeting, date, streak badge, freeze badge
 function TopBar() {
   const { colors } = useTheme();
-  // TODO: replace with real streak/freeze data later
-  const streak = 0;
-  const freezes = 0;
-  const showStreak = streak > 0;
+  const { streak } = useStreakStore();
+
+  const currentStreak = streak?.current_streak ?? 0;
+  const freezes = streak?.freezes_available ?? 0;
+  const showStreak = currentStreak > 0;
 
   return (
     <View style={styles.topBar}>
@@ -65,7 +67,7 @@ function TopBar() {
         {showStreak && (
           <View style={[styles.streakBadge, { backgroundColor: colors.accentSoft }]}>
             <IconFlame size={18} color={colors.accent} />
-            <Text style={[styles.streakText, { color: colors.accent }]}>{streak}</Text>
+            <Text style={[styles.streakText, { color: colors.accent }]}>{currentStreak}</Text>
           </View>
         )}
         <View style={[styles.freezeBadge, { borderColor: colors.border }]}>
@@ -136,10 +138,12 @@ function SectionLabel({ count }: { count: number }) {
 function HabitCard({
   habit,
   status,
+  timesShownUp,
   onPress,
 }: {
   habit: Habit;
   status: 'unpledged' | 'pledged' | 'completed' | 'partial' | 'skipped';
+  timesShownUp: number;
   onPress: () => void;
 }) {
   const { colors } = useTheme();
@@ -161,7 +165,7 @@ function HabitCard({
           </Text>
           <View style={[styles.metaDot, { backgroundColor: colors.textTertiary }]} />
           <Text style={[styles.shownUpText, { color: colors.textTertiary }]}>
-            0 times shown up
+            {timesShownUp} times shown up
           </Text>
         </View>
       </View>
@@ -269,6 +273,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { habits, isLoading, fetchHabits } = useHabitStore();
   const { hasPledgedToday, todaysPledges, fetchTodaysPledges } = usePledgeStore();
+  const { streak, fetchStreak } = useStreakStore();
   const {
     todaysCompletions,
     fetchTodaysCompletions,
@@ -276,6 +281,8 @@ export default function HomeScreen() {
     markPartial,
     markSkipped,
     undoCompletion,
+    timesShownUp,
+    fetchTimesShownUp,
   } = useCompletionStore();
 
   // Bottom sheet state
@@ -286,7 +293,15 @@ export default function HomeScreen() {
     fetchHabits();
     fetchTodaysPledges();
     fetchTodaysCompletions();
+    fetchStreak();
   }, []);
+
+  // Fetch times shown up when habits are loaded
+  useEffect(() => {
+    if (habits.length > 0) {
+      fetchTimesShownUp(habits.map((h) => h.id));
+    }
+  }, [habits]);
 
   // Only show habits scheduled for today
   const todaysHabits = habits.filter((habit) => {
@@ -363,6 +378,7 @@ export default function HomeScreen() {
             <HabitCard
               habit={item}
               status={getHabitStatus(item)}
+              timesShownUp={timesShownUp[item.id] ?? 0}
               onPress={() => openSheet(item)}
             />
           )}

@@ -10,6 +10,8 @@ interface CompletionState {
   markPartial: (habitId: string, value: number, note?: string) => Promise<void>;
   markSkipped: (habitId: string) => Promise<void>;
   undoCompletion: (habitId: string) => Promise<void>;
+  timesShownUp: Record<string, number>;
+  fetchTimesShownUp: (habitIds: string[]) => Promise<void>;
 }
 
 // Helper to get today's date as YYYY-MM-DD
@@ -20,6 +22,7 @@ function todayStr(): string {
 export const useCompletionStore = create<CompletionState>((set, get) => ({
   todaysCompletions: [],
   isLoading: false,
+  timesShownUp: {},
 
   fetchTodaysCompletions: async () => {
     set({ isLoading: true });
@@ -74,5 +77,25 @@ export const useCompletionStore = create<CompletionState>((set, get) => ({
       .eq('habit_id', habitId)
       .eq('date', date);
     get().fetchTodaysCompletions();
+  },
+
+    // Count total engaged completions per habit (lifetime, not just today)
+  fetchTimesShownUp: async (habitIds) => {
+    if (habitIds.length === 0) return;
+
+    const { data } = await supabase
+      .from('completions')
+      .select('habit_id, status')
+      .in('habit_id', habitIds)
+      .in('status', ['completed', 'partial']);
+
+    // Count per habit
+    const counts: Record<string, number> = {};
+    habitIds.forEach((id) => { counts[id] = 0; });
+    (data ?? []).forEach((row: { habit_id: string }) => {
+      counts[row.habit_id] = (counts[row.habit_id] || 0) + 1;
+    });
+
+    set({ timesShownUp: counts });
   },
 }));
