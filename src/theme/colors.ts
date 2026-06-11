@@ -1,49 +1,55 @@
-// Light mode color tokens - warm, earthy palette 
-// Every color has a "role" (what it's used for) not a "name" (what it looks like)
-// This means we use "accent" not "terracotta" 
-
+// Light mode tokens - matched to the design handoff
 export const lightColors = {
   // Backgrounds
-  bg: '#FAF8F5',              // Primary background - warm off-white, never pure white
-  surface: '#F2EDE7',         // Cards, bottom sheets, elevated surfaces
-  surfaceAlt: '#EBE4DB',      // Alternative surface for subtle contrast
-  border: 'rgba(60, 50, 40, 0.08)', // Very subtle borders
+  bg: '#FAF8F5',
+  surface: '#F2EDE7',
+  surfaceAlt: '#EBE4DB',
+  border: 'rgba(60, 50, 40, 0.08)',
 
-  // Text
-  textPrimary: '#2C2C2C',     // Headlines, body text - warm charcoal, not pure black
-  textSecondary: '#7A7068',   // Supporting text, labels, timestamps
-  textTertiary: '#A89B90',    // Least important text, hints
+  // Text hierarchy
+  textPrimary: '#2C2C2C',
+  textSecondary: '#7A7068',
+  textTertiary: '#A89B90',
 
   // Interactive
-  accent: '#C4835A',          // CTAs, active states, streak counter - warm terracotta
-  accentSoft: 'rgba(196, 131, 90, 0.12)', // Subtle accent backgrounds
+  accent: '#C4835A',
+  accentSoft: 'rgba(196, 131, 90, 0.12)',
 
-  // Status indicators - these map to habit completion states
-  success: '#7DA68A',         // Completed - muted sage green, not sharp green
-  partial: '#D4A96A',         // Partial completion - warm gold
-  missed: '#C4837A',          // Missed/skipped - soft rose, not alarming red
+  // Status
+  success: '#7DA68A',
+  partial: '#D4A96A',
+  missed: '#C4837A',
 
-  // Habit card accent colors - the colored left strip on each habit card
+  // Named habit accent colors for the card left strip
+  habitTerracotta: '#C4835A',
+  habitSage: '#7DA68A',
+  habitPeach: '#D4A96A',
+  habitMauve: '#A98AB8',
+  habitSky: '#7AA2C0',
+
+  // Kept as an array for the color picker in habit creation
   habitColors: ['#C4835A', '#7DA68A', '#D4A96A', '#A98AB8', '#7AA2C0'],
 
-  // Why card pastel palette - randomly assigned as card backgrounds
-  // These need to be soft enough that white text stays readable on top
+  // Named why card pastels - randomly assigned as card backgrounds
+  whyLavender: '#B8A9D4',
+  whyDustyRose: '#D4A9B8',
+  whySky: '#A9C4D4',
+  whySage: '#A9D4B8',
+  whyPeach: '#D4C0A9',
+  whyPeriwinkle: '#A9B8D4',
+  whyBlush: '#D4B0A9',
+  whySeafoam: '#A9D4CC',
+  whyMauve: '#C4A9D4',
+  whyGold: '#D4CCA9',
+
+  // As an array for random assignment
   whyCardColors: [
-    '#B8A9D4', // Soft lavender
-    '#D4A9B8', // Dusty rose
-    '#A9C4D4', // Muted sky
-    '#A9D4B8', // Sage
-    '#D4C0A9', // Warm peach
-    '#A9B8D4', // Soft periwinkle
-    '#D4B0A9', // Blush
-    '#A9D4CC', // Seafoam
-    '#C4A9D4', // Mauve
-    '#D4CCA9', // Soft gold
+    '#B8A9D4', '#D4A9B8', '#A9C4D4', '#A9D4B8', '#D4C0A9',
+    '#A9B8D4', '#D4B0A9', '#A9D4CC', '#C4A9D4', '#D4CCA9',
   ],
 };
 
-// Dark mode color tokens - same roles, adjusted for dark backgrounds
-// Colors are slightly more saturated to feel right against dark surfaces
+// Dark mode - same roles, adjusted for dark backgrounds
 export const darkColors = {
   bg: '#1C1A18',
   surface: '#2A2725',
@@ -54,28 +60,36 @@ export const darkColors = {
   textSecondary: '#9A918A',
   textTertiary: '#6E665F',
 
-  accent: '#D4975A',          // Slightly warmer amber in dark mode
+  accent: '#D4975A',
   accentSoft: 'rgba(212, 151, 90, 0.16)',
 
   success: '#8AB89A',
   partial: '#D4A96A',
   missed: '#D4938A',
 
+  habitTerracotta: '#D4975A',
+  habitSage: '#8AB89A',
+  habitPeach: '#D4A96A',
+  habitMauve: '#B8A0C8',
+  habitSky: '#8AB0CC',
+
   habitColors: ['#D4975A', '#8AB89A', '#D4A96A', '#B8A0C8', '#8AB0CC'],
 
+  whyLavender: '#7E70A4',
+  whyDustyRose: '#A47E8E',
+  whySky: '#7E96A8',
+  whySage: '#7EA88E',
+  whyPeach: '#A89478',
+  whyPeriwinkle: '#7E8CA8',
+  whyBlush: '#A88478',
+  whySeafoam: '#7EA8A0',
+  whyMauve: '#9078A4',
+  whyGold: '#A8A078',
+
   whyCardColors: [
-    '#7E70A4',
-    '#A47E8E',
-    '#7E96A8',
-    '#7EA88E',
-    '#A89478',
-    '#7E8CA8',
-    '#A88478',
-    '#7EA8A0',
-    '#9078A4',
-    '#A8A078',
+    '#7E70A4', '#A47E8E', '#7E96A8', '#7EA88E', '#A89478',
+    '#7E8CA8', '#A88478', '#7EA8A0', '#9078A4', '#A8A078',
   ],
 };
 
-// TypeScript type - so any code using colors gets autocomplete and type checking
 export type ColorTokens = typeof lightColors;
