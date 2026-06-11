@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -13,6 +14,8 @@ import { spacing, radii, layout } from '@/theme/spacing';
 import { useHabitStore } from '@/stores/habitStore';
 import { usePledgeStore } from '@/stores/pledgeStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useCompletionStore } from '@/stores/completionStore';
+import { HabitBottomSheet } from '@/components/HabitBottomSheet';
 import {
   IconFlame,
   IconSnowflake,
@@ -130,15 +133,22 @@ function SectionLabel({ count }: { count: number }) {
 }
 
 // Individual habit card matching the handoff design
-function HabitCard({ habit }: { habit: Habit }) {
+function HabitCard({
+  habit,
+  status,
+  onPress,
+}: {
+  habit: Habit;
+  status: 'unpledged' | 'pledged' | 'completed' | 'partial' | 'skipped';
+  onPress: () => void;
+}) {
   const { colors } = useTheme();
-  // TODO: determine actual status from pledges/completions
-  const status = 'unpledged' as const;
 
   return (
     <TouchableOpacity
       style={[styles.card, { backgroundColor: colors.surface }]}
       activeOpacity={0.7}
+      onPress={onPress}
     >
       <View style={[styles.colorStrip, { backgroundColor: habit.color || colors.accent }]} />
       <View style={styles.cardContent}>
@@ -199,25 +209,65 @@ export default function HomeScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const { habits, isLoading, fetchHabits } = useHabitStore();
-  const { hasPledgedToday, fetchTodaysPledges } = usePledgeStore();
+  const { hasPledgedToday, todaysPledges, fetchTodaysPledges } = usePledgeStore();
+  const {
+    todaysCompletions,
+    fetchTodaysCompletions,
+    markComplete,
+    markPartial,
+    markSkipped,
+    undoCompletion,
+  } = useCompletionStore();
+
+  // Bottom sheet state
+  const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
+  const [sheetVisible, setSheetVisible] = useState(false);
 
   useEffect(() => {
     fetchHabits();
     fetchTodaysPledges();
+    fetchTodaysCompletions();
   }, []);
 
   // TODO: filter habits by today's schedule
   const todaysHabits = habits;
+
+  // Figure out status for a given habit
+  const getHabitStatus = (habit: Habit) => {
+    const completion = todaysCompletions.find((c) => c.habit_id === habit.id);
+    if (completion) return completion.status as 'completed' | 'partial' | 'skipped';
+    const pledge = todaysPledges.find((p) => p.habit_id === habit.id);
+    if (pledge) return 'pledged' as const;
+    return 'unpledged' as const;
+  };
+
+  // Map status to sheet variant
+  const getSheetVariant = (habit: Habit) => {
+    const status = getHabitStatus(habit);
+    if (status === 'completed' || status === 'partial') return 'completed';
+    if (status === 'skipped') return 'completed';
+    if (status === 'pledged') return 'pledged';
+    return 'unpledged';
+  };
+
+  const openSheet = (habit: Habit) => {
+    setSelectedHabit(habit);
+    setSheetVisible(true);
+  };
+
+  const closeSheet = () => {
+    setSheetVisible(false);
+    setSelectedHabit(null);
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <TopBar />
 
       {habits.length === 0 && !isLoading ? (
-        // Empty state - no habits created yet
         <View style={styles.emptyState}>
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            No habits yet — tap + to create one
+            No habits yet - tap + to create one
           </Text>
         </View>
       ) : (
@@ -228,10 +278,7 @@ export default function HomeScreen() {
           contentContainerStyle={styles.listContent}
           ListHeaderComponent={
             <>
-              {/* Fresh start hero when streak is 0 */}
               <FreshStartHero />
-
-              {/* Pledge banner or confirmation */}
               {!hasPledgedToday ? (
                 <View style={{ marginTop: 20 }}>
                   <PledgeBanner onPress={() => router.push('/pledge')} />
@@ -241,18 +288,37 @@ export default function HomeScreen() {
                   <PledgedConfirmation />
                 </View>
               )}
-
-              {/* Section label */}
               <View style={{ marginTop: hasPledgedToday ? 16 : 22 }}>
                 <SectionLabel count={todaysHabits.length} />
               </View>
             </>
           }
-          renderItem={({ item }) => <HabitCard habit={item} />}
+          renderItem={({ item }) => (
+            <HabitCard
+              habit={item}
+              status={getHabitStatus(item)}
+              onPress={() => openSheet(item)}
+            />
+          )}
         />
       )}
 
       <PlusFAB onPress={() => router.push('/create')} />
+
+      {/* Bottom sheet for habit completion */}
+      {selectedHabit && (
+        <HabitBottomSheet
+          visible={sheetVisible}
+          habit={selectedHabit}
+          variant={getSheetVariant(selectedHabit)}
+          onClose={closeSheet}
+          onMarkComplete={() => markComplete(selectedHabit.id, selectedHabit.goal_value)}
+          onMarkPartial={(value, note) => markPartial(selectedHabit.id, value, note)}
+          onSkip={() => { markSkipped(selectedHabit.id); closeSheet(); }}
+          onUndo={() => undoCompletion(selectedHabit.id)}
+          onPledgeFirst={() => { closeSheet(); router.push('/pledge'); }}
+        />
+      )}
     </View>
   );
 }
