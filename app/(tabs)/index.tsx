@@ -274,7 +274,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { habits, isLoading, fetchHabits } = useHabitStore();
   const { hasPledgedToday, todaysPledges, fetchTodaysPledges } = usePledgeStore();
-  const { streak, fetchStreak, incrementStreak } = useStreakStore();
+  const { streak, fetchStreak, incrementStreak, checkYesterdayMissed } = useStreakStore();
   const {
     todaysCompletions,
     fetchTodaysCompletions,
@@ -289,6 +289,7 @@ export default function HomeScreen() {
   // Bottom sheet state
   const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
   const [sheetVisible, setSheetVisible] = useState(false);
+  const [missedDayChecked, setMissedDayChecked] = useState(false);
 
   useEffect(() => {
     fetchHabits();
@@ -303,6 +304,20 @@ export default function HomeScreen() {
       fetchTimesShownUp(habits.map((h) => h.id));
     }
   }, [habits]);
+
+  // Check if yesterday had missed habits - redirect to missed day flow
+  useEffect(() => {
+    const check = async () => {
+      if (habits.length > 0 && streak && !missedDayChecked) {
+        setMissedDayChecked(true);
+        const hasMissed = await checkYesterdayMissed(habits);
+        if (hasMissed) {
+          router.push('/missed-day');
+        }
+      }
+    };
+    check();
+  }, [habits, streak]);
 
   // Only show habits scheduled for today
   const todaysHabits = habits.filter((habit) => {
