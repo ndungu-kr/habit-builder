@@ -1,66 +1,57 @@
-import { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
-import { Slot, useRouter, useSegments } from 'expo-router';
-import {
-  useFonts,
-  Nunito_400Regular,
-  Nunito_500Medium,
-  Nunito_600SemiBold,
-  Nunito_700Bold,
-} from '@expo-google-fonts/nunito';
-import { ThemeProvider, useTheme } from '@/providers/ThemeProvider';
-import { useAuthStore } from '@/stores/authStore';
+import { Tabs } from 'expo-router';
+import { useTheme } from '@/providers/ThemeProvider';
+import { IconHome, IconChart, IconGear } from '@/components/Icons';
 
-function RootLayoutNav() {
+export default function TabsLayout() {
   const { colors } = useTheme();
-  const router = useRouter();
-  const segments = useSegments();
-  const { session, initialized } = useAuthStore();
-
-  useEffect(() => {
-    if (!initialized) return;
-
-    const inAuthGroup = segments[0] === '(auth)';
-
-    if (!session && !inAuthGroup) {
-      router.replace('/(auth)/login');
-    } else if (session && inAuthGroup) {
-      router.replace('/(tabs)');
-    }
-  }, [session, initialized, segments]);
-
-  if (!initialized) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg }}>
-        <ActivityIndicator size="large" color={colors.accent} />
-      </View>
-    );
-  }
-
-  return <Slot />;
-}
-
-export default function RootLayout() {
-  const initialize = useAuthStore((state) => state.initialize);
-
-  const [fontsLoaded] = useFonts({
-    Nunito_400Regular,
-    Nunito_500Medium,
-    Nunito_600SemiBold,
-    Nunito_700Bold,
-  });
-
-  useEffect(() => {
-    initialize();
-  }, []);
-
-  if (!fontsLoaded) {
-    return null;
-  }
 
   return (
-    <ThemeProvider>
-      <RootLayoutNav />
-    </ThemeProvider>
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.textTertiary,
+        tabBarStyle: {
+          backgroundColor: colors.bg,
+          borderTopColor: colors.border,
+          paddingBottom: 28, // room for home indicator
+          paddingTop: 8,
+          height: 84,
+        },
+        tabBarLabelStyle: {
+          fontFamily: 'Nunito_600SemiBold',
+          fontSize: 11,
+          letterSpacing: 0.2,
+        },
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Today',
+          tabBarIcon: ({ color, focused }) => (
+            <IconHome size={24} color={color} filled={focused} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="journey"
+        options={{
+          title: 'Journey',
+          tabBarIcon: ({ color, focused }) => (
+            <IconChart size={24} color={color} filled={focused} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Settings',
+          tabBarIcon: ({ color, focused }) => (
+            <IconGear size={24} color={color} filled={focused} />
+          ),
+        }}
+      />
+    </Tabs>
   );
 }
