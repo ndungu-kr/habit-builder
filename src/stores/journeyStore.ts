@@ -58,7 +58,7 @@ export const useJourneyStore = create<JourneyState>((set) => ({
     // Fetch habits for context
     const { data: habits } = await supabase
       .from('habits')
-      .select('id, name, color, schedule_type, scheduled_days')
+      .select('id, name, color, schedule_type, scheduled_days, created_at')
       .eq('user_id', user.id)
       .eq('is_active', true)
       .order('sort_order');
