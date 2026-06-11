@@ -269,6 +269,8 @@ function PlusFAB({ onPress }: { onPress: () => void }) {
   );
 }
 
+let missedDayChecked = false;
+
 export default function HomeScreen() {
   const { colors } = useTheme();
   const router = useRouter();
@@ -289,7 +291,6 @@ export default function HomeScreen() {
   // Bottom sheet state
   const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
   const [sheetVisible, setSheetVisible] = useState(false);
-  const [missedDayChecked, setMissedDayChecked] = useState(false);
 
   useEffect(() => {
     fetchHabits();
@@ -306,10 +307,10 @@ export default function HomeScreen() {
   }, [habits]);
 
   // Check if yesterday had missed habits - redirect to missed day flow
-  useEffect(() => {
+    useEffect(() => {
     const check = async () => {
       if (habits.length > 0 && streak && !missedDayChecked) {
-        setMissedDayChecked(true);
+        missedDayChecked = true;
         const hasMissed = await checkYesterdayMissed(habits);
         if (hasMissed) {
           router.push('/missed-day');
