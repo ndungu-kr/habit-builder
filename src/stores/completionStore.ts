@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import { Completion, CompletionStatus } from '@/types';
 import { useStreakStore } from '@/stores/streakStore';
+import { sendMilestoneNotification } from '@/utils/notifications';
 import { MILESTONE_THRESHOLDS } from '@/utils/streakCalculator';
 
 interface CompletionState {
@@ -38,6 +39,7 @@ async function checkHabitMilestone(habitId: string, habitName: string, habitColo
       habitName,
       habitColor,
     });
+    sendMilestoneNotification(habitName, count, 'habit');
   }
 }
 

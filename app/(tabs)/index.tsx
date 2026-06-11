@@ -17,6 +17,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { useCompletionStore } from '@/stores/completionStore';
 import { HabitBottomSheet } from '@/components/HabitBottomSheet';
 import { useStreakStore } from '@/stores/streakStore';
+import { useProfileStore } from '@/stores/profileStore';
+import { scheduleAllNotifications } from '@/utils/notifications';
 import {
   IconFlame,
   IconSnowflake,
@@ -277,6 +279,7 @@ export default function HomeScreen() {
   const { habits, isLoading, fetchHabits } = useHabitStore();
   const { hasPledgedToday, todaysPledges, fetchTodaysPledges } = usePledgeStore();
   const { streak, fetchStreak, incrementStreak, checkYesterdayMissed, pendingMilestone, setPendingMilestone } = useStreakStore();
+  const { profile, fetchProfile } = useProfileStore();
   const {
     todaysCompletions,
     fetchTodaysCompletions,
@@ -297,6 +300,7 @@ export default function HomeScreen() {
     fetchTodaysPledges();
     fetchTodaysCompletions();
     fetchStreak();
+    fetchProfile();
   }, []);
 
   // Fetch times shown up when habits are loaded
@@ -305,6 +309,13 @@ export default function HomeScreen() {
       fetchTimesShownUp(habits.map((h) => h.id));
     }
   }, [habits]);
+
+  // Schedule notifications when profile and habits are loaded
+  useEffect(() => {
+    if (profile && habits.length > 0) {
+      scheduleAllNotifications(profile, habits);
+    }
+  }, [profile, habits]);
 
   // Check if yesterday had missed habits - redirect to missed day flow
     useEffect(() => {

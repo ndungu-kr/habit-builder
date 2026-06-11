@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import { UnifiedStreak, Habit, CompletionStatus } from '@/types';
+import { sendMilestoneNotification } from '@/utils/notifications';
 import {
   shouldStreakIncrement,
   hasUnengagedHabits,
@@ -127,6 +128,7 @@ export const useStreakStore = create<StreakState>((set, get) => ({
           freezeCount: newFreezes,
         },
       });
+      sendMilestoneNotification('', milestone, 'streak');
     }
   },
 
