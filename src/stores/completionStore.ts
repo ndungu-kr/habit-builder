@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import { Completion, CompletionStatus } from '@/types';
+import { MILESTONE_THRESHOLDS } from '@/utils/streakCalculator';
 
 interface CompletionState {
   todaysCompletions: Completion[];
@@ -12,6 +13,25 @@ interface CompletionState {
   undoCompletion: (habitId: string) => Promise<void>;
   timesShownUp: Record<string, number>;
   fetchTimesShownUp: (habitIds: string[]) => Promise<void>;
+}
+
+// Check if a habit just hit a milestone and save it
+async function checkHabitMilestone(habitId: string) {
+  // Count all engaged completions for this habit
+  const { count } = await supabase
+    .from('completions')
+    .select('*', { count: 'exact', head: true })
+    .eq('habit_id', habitId)
+    .in('status', ['completed', 'partial']);
+
+  if (count && MILESTONE_THRESHOLDS.includes(count)) {
+    await supabase
+      .from('habit_milestones')
+      .upsert(
+        { habit_id: habitId, completion_count: count },
+        { onConflict: 'habit_id,completion_count' }
+      );
+  }
 }
 
 // Helper to get today's date as YYYY-MM-DD
@@ -45,6 +65,7 @@ export const useCompletionStore = create<CompletionState>((set, get) => ({
       );
     // Re-fetch to stay in sync
     get().fetchTodaysCompletions();
+    checkHabitMilestone(habitId);
   },
 
   markPartial: async (habitId, value, note) => {
@@ -56,6 +77,7 @@ export const useCompletionStore = create<CompletionState>((set, get) => ({
         { onConflict: 'habit_id,date' }
       );
     get().fetchTodaysCompletions();
+    checkHabitMilestone(habitId);
   },
 
   markSkipped: async (habitId) => {
