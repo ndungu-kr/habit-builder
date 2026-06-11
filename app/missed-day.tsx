@@ -481,3 +481,332 @@ export default function MissedDayScreen() {
 
   return <MissedTransition onGo={handleGoPledge} />;
 }
+
+const styles = StyleSheet.create({
+  // Step header
+  stepHeader: {
+    alignItems: 'center',
+    paddingTop: 14,
+    paddingHorizontal: 20,
+  },
+  dots: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  dot: {
+    height: 6,
+    borderRadius: 999,
+  },
+
+  // Primary CTA
+  primaryCta: {
+    borderRadius: 999,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    shadowColor: '#C4835A',
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 18,
+    elevation: 6,
+  },
+  primaryCtaLabel: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 16,
+    letterSpacing: -0.1,
+  },
+  primaryCtaSub: {
+    fontFamily: 'Nunito_500Medium',
+    fontSize: 12,
+    marginTop: 2,
+  },
+
+  // Habit chip
+  habitChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderRadius: 12,
+    padding: 12,
+    paddingLeft: 0,
+    overflow: 'hidden',
+  },
+  chipStrip: {
+    width: 4,
+    alignSelf: 'stretch',
+    borderRadius: 999,
+  },
+  chipName: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 15,
+    letterSpacing: -0.1,
+  },
+  chipKind: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 12,
+    marginTop: 2,
+    letterSpacing: 0.4,
+  },
+  chipIcon: {
+    width: 26,
+    height: 26,
+    borderRadius: 999,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0.85,
+  },
+
+  // Acknowledge
+  eyebrow: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 11.5,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+  title: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 28,
+    letterSpacing: -0.6,
+    lineHeight: 32,
+    marginTop: 6,
+  },
+  subtitle: {
+    fontFamily: 'Nunito_500Medium',
+    fontSize: 15,
+    marginTop: 10,
+    lineHeight: 22.5,
+  },
+  trackedCard: {
+    borderRadius: 16,
+    padding: 16,
+  },
+  trackedLabel: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 12,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    marginBottom: 10,
+  },
+
+  // Decision card
+  decisionCard: {
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 1,
+  },
+  decisionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  decisionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 999,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  decisionTitle: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 15,
+    letterSpacing: -0.05,
+  },
+  decisionSub: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 12.5,
+    marginTop: 2,
+  },
+  decisionBody: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 14.5,
+    marginTop: 14,
+    lineHeight: 21.75,
+  },
+
+  // Footer
+  footerActions: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 30,
+    borderTopWidth: 1,
+  },
+  footer: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 30,
+    borderTopWidth: 1,
+  },
+
+  // Center content (freeze-used, reset, transition)
+  centerContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+
+  // Freeze used
+  medallionOuter: {
+    width: 110,
+    height: 110,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 22,
+  },
+  medallionInner: {
+    width: 76,
+    height: 76,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  bigTitle: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 30,
+    letterSpacing: -0.6,
+    lineHeight: 33,
+    textAlign: 'center',
+  },
+  bigSub: {
+    fontFamily: 'Nunito_500Medium',
+    fontSize: 16,
+    marginTop: 12,
+    lineHeight: 24,
+    textAlign: 'center',
+    maxWidth: 300,
+  },
+  balanceCard: {
+    marginTop: 28,
+    borderRadius: 14,
+    padding: 14,
+    paddingHorizontal: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  balanceLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingRight: 14,
+    borderRightWidth: 1,
+  },
+  balanceStreak: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 20,
+    letterSpacing: -0.4,
+  },
+  balanceRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  balanceFreeze: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 15,
+  },
+
+  // Reset
+  sunriseCircle: {
+    width: 110,
+    height: 110,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 22,
+  },
+  lifetimeCard: {
+    marginTop: 26,
+    borderRadius: 16,
+    padding: 16,
+    paddingHorizontal: 20,
+    width: '100%',
+    maxWidth: 320,
+  },
+  lifetimeLabel: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 11,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    marginBottom: 10,
+  },
+  lifetimeGrid: {
+    flexDirection: 'row',
+    gap: 14,
+  },
+  lifetimeStat: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 22,
+    letterSpacing: -0.4,
+    lineHeight: 22,
+  },
+  lifetimeCaption: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 11.5,
+    marginTop: 4,
+    letterSpacing: 0.2,
+  },
+
+  // Transition
+  transitionBg: {
+    flex: 1,
+    overflow: 'hidden',
+  },
+  ringOuter: {
+    position: 'absolute',
+    top: '38%',
+    left: '50%',
+    width: 360,
+    height: 360,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    transform: [{ translateX: -180 }, { translateY: -180 }],
+  },
+  ringInner: {
+    position: 'absolute',
+    top: '38%',
+    left: '50%',
+    width: 240,
+    height: 240,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    transform: [{ translateX: -120 }, { translateY: -120 }],
+  },
+  arrowCircle: {
+    width: 96,
+    height: 96,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 28,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.22)',
+  },
+  transitionTitle: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 30,
+    color: '#fff',
+    letterSpacing: -0.6,
+    lineHeight: 35,
+    textAlign: 'center',
+  },
+  transitionSub: {
+    fontFamily: 'Nunito_500Medium',
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 12,
+    lineHeight: 24,
+    textAlign: 'center',
+    maxWidth: 300,
+  },
+});
