@@ -229,8 +229,15 @@ export default function HomeScreen() {
     fetchTodaysCompletions();
   }, []);
 
-  // TODO: filter habits by today's schedule
-  const todaysHabits = habits;
+  // Only show habits scheduled for today
+  const todaysHabits = habits.filter((habit) => {
+    if (habit.schedule_type === 'everyday') return true;
+    const dayMap: Record<number, string> = {
+      0: 'sun', 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat',
+    };
+    const today = dayMap[new Date().getDay()];
+    return habit.scheduled_days?.includes(today as any);
+  });
 
   // Figure out status for a given habit
   const getHabitStatus = (habit: Habit) => {
