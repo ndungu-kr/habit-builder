@@ -178,6 +178,24 @@ export const useStreakStore = create<StreakState>((set, get) => ({
   // Check if yesterday had any missed/skipped habits
   // Returns true if the missed day flow should be shown
   checkYesterdayMissed: async (habits) => {
+    // If a freeze was already used for yesterday, skip the flow
+    const userId = get().streak?.user_id ?? '';
+    if (userId) {
+      const { data: existingFreeze } = await supabase
+        .from('freeze_events')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('date_frozen', yesterdayStr())
+        .maybeSingle();
+      if (existingFreeze) return false;
+    }
+
+    // If streak was already reset today, skip the flow
+    const current = get().streak;
+    if (current && current.current_streak === 0) {
+      const updatedDate = current.updated_at?.split('T')[0];
+      if (updatedDate === todayStr()) return false;
+    }
     const { streak } = get();
     if (!streak) return false;
 
