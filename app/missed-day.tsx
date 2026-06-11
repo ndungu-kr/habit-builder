@@ -256,3 +256,56 @@ function MissedAcknowledge({
     </View>
   );
 }
+
+function MissedFreezeUsed({
+  streakValue,
+  freezesRemaining,
+  onContinue,
+}: {
+  streakValue: number;
+  freezesRemaining: number;
+  onContinue: () => void;
+}) {
+  const { colors } = useTheme();
+
+  return (
+    <View style={{ flex: 1 }}>
+      <View style={{ height: 50 }} />
+      <MDStepHeader current={2} total={3} />
+
+      <View style={styles.centerContent}>
+        {/* Snowflake medallion */}
+        <View style={[styles.medallionOuter, { backgroundColor: colors.accentSoft }]}>
+          <View style={[styles.medallionInner, { backgroundColor: colors.surface, borderColor: colors.accent }]}>
+            <IconSnowflake size={38} color={colors.accent} />
+          </View>
+        </View>
+
+        <Text style={[styles.bigTitle, { color: colors.textPrimary }]}>
+          Your streak holds at {streakValue}.
+        </Text>
+        <Text style={[styles.bigSub, { color: colors.textSecondary }]}>
+          The freeze holds your streak in place because you didn't do the work yesterday. Today, let's pick back up.
+        </Text>
+
+        {/* Balance card */}
+        <View style={[styles.balanceCard, { backgroundColor: colors.surface }]}>
+          <View style={[styles.balanceLeft, { borderRightColor: colors.border }]}>
+            <IconFlame size={18} color={colors.accent} />
+            <Text style={[styles.balanceStreak, { color: colors.accent }]}>{streakValue}</Text>
+          </View>
+          <View style={styles.balanceRight}>
+            <IconSnowflake size={16} color={colors.textSecondary} />
+            <Text style={[styles.balanceFreeze, { color: colors.textSecondary }]}>
+              {freezesRemaining} / 3 remaining
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={[styles.footer, { borderTopColor: colors.border }]}>
+        <MDPrimaryCTA label="Now, today's pledge" onPress={onContinue} />
+      </View>
+    </View>
+  );
+}
