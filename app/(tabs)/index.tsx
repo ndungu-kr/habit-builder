@@ -26,6 +26,7 @@ import {
   StatusCircle,
 } from '@/components/Icons';
 import { Habit } from '@/types';
+import { shouldStreakIncrement } from '@/utils/streakCalculator';
 
 // Returns greeting based on time of day
 function getGreeting(): string {
@@ -273,7 +274,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { habits, isLoading, fetchHabits } = useHabitStore();
   const { hasPledgedToday, todaysPledges, fetchTodaysPledges } = usePledgeStore();
-  const { streak, fetchStreak } = useStreakStore();
+  const { streak, fetchStreak, incrementStreak } = useStreakStore();
   const {
     todaysCompletions,
     fetchTodaysCompletions,
@@ -341,6 +342,18 @@ export default function HomeScreen() {
     setSelectedHabit(null);
   };
 
+  // After any completion, check if all today's habits are now engaged
+  const checkAndUpdateStreak = async () => {
+    await fetchTodaysCompletions();
+    const fresh = useCompletionStore.getState().todaysCompletions;
+    const scheduledIds = todaysHabits.map((h) => h.id);
+
+    if (shouldStreakIncrement(fresh, scheduledIds)) {
+      await incrementStreak();
+      fetchTimesShownUp(habits.map((h) => h.id));
+    }
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <TopBar />
@@ -403,10 +416,19 @@ export default function HomeScreen() {
           habit={selectedHabit}
           variant={getSheetVariant(selectedHabit)}
           onClose={closeSheet}
-          onMarkComplete={() => markComplete(selectedHabit.id, selectedHabit.goal_value)}
-          onMarkPartial={(value, note) => markPartial(selectedHabit.id, value, note)}
+          onMarkComplete={async () => {
+            await markComplete(selectedHabit.id, selectedHabit.goal_value);
+            checkAndUpdateStreak();
+          }}
+          onMarkPartial={async (value, note) => {
+            await markPartial(selectedHabit.id, value, note);
+            checkAndUpdateStreak();
+          }}
           onSkip={() => { markSkipped(selectedHabit.id); closeSheet(); }}
-          onUndo={() => undoCompletion(selectedHabit.id)}
+          onUndo={async () => {
+            await undoCompletion(selectedHabit.id);
+            fetchStreak();
+          }}
           onPledgeFirst={() => { closeSheet(); router.push('/pledge'); }}
         />
       )}
