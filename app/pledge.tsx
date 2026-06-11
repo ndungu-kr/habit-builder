@@ -11,6 +11,7 @@ import { useHabitStore } from '@/stores/habitStore';
 import { usePledgeStore } from '@/stores/pledgeStore';
 import { IconCheck, IconChevronRight } from '@/components/Icons';
 import { Habit } from '@/types';
+import { useCompletionStore } from '@/stores/completionStore';
 
 // Progress dots - shows which habit you're pledging to
 function PledgeProgress({ current, total }: { current: number; total: number }) {
@@ -156,12 +157,14 @@ function PledgeHabit({
   habit,
   current,
   total,
+  timesShownUp,
   onPledge,
   onClose,
 }: {
   habit: Habit;
   current: number;
   total: number;
+  timesShownUp: number;
   onPledge: () => void;
   onClose: () => void;
 }) {
@@ -183,7 +186,7 @@ function PledgeHabit({
           {habit.name}
         </Text>
         <Text style={[styles.timesShownUp, { color: colors.accent }]}>
-          You've shown up 0 times
+          You've shown up {timesShownUp} time{timesShownUp !== 1 ? 's' : ''}
         </Text>
       </View>
 
@@ -274,6 +277,7 @@ export default function PledgeScreen() {
   const router = useRouter();
   const { habits, fetchHabits } = useHabitStore();
   const { hasPledgedToday, createPledges, fetchTodaysPledges } = usePledgeStore();
+  const { timesShownUp, fetchTimesShownUp } = useCompletionStore();
 
   // 'landing' | 'pledging' | 'confirmation'
   const [stage, setStage] = useState<'landing' | 'pledging' | 'confirmation'>('landing');
@@ -282,6 +286,12 @@ export default function PledgeScreen() {
   useEffect(() => {
     fetchHabits();
   }, []);
+
+  useEffect(() => {
+    if (habits.length > 0) {
+      fetchTimesShownUp(habits.map((h) => h.id));
+    }
+  }, [habits]);
 
   // Filter to today's scheduled habits
   const todaysHabits = habits.filter((habit) => {
@@ -369,6 +379,7 @@ export default function PledgeScreen() {
         habit={currentHabit}
         current={currentIndex + 1}
         total={todaysHabits.length}
+        timesShownUp={timesShownUp[currentHabit.id] ?? 0}
         onPledge={handlePledgeHabit}
         onClose={handleClose}
       />

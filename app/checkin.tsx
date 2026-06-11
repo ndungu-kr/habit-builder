@@ -434,11 +434,13 @@ function DailySummary({
   habits,
   totalSteps,
   engagedCount,
+  timesShownUp,
   onClose,
 }: {
   habits: { habit: Habit; status: HabitStatus }[];
   totalSteps: number;
   engagedCount: number;
+  timesShownUp: Record<string, number>;
   onClose: () => void;
 }) {
   const { colors } = useTheme();
@@ -498,7 +500,7 @@ function DailySummary({
                   </Text>
                   <View style={{ alignItems: 'flex-end' }}>
                     <Text style={[styles.highlightValue, { color: colors.textPrimary }]}>
-                      0
+                      {timesShownUp[h.habit.id] ?? 0}
                     </Text>
                     {isEngaged && (
                       <Text style={[styles.highlightDelta, { color: colors.accent }]}>+1</Text>
@@ -534,11 +536,18 @@ export default function CheckInScreen() {
 
   const [stage, setStage] = useState<'landing' | 'reflecting' | 'summary'>('landing');
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { timesShownUp, fetchTimesShownUp } = useCompletionStore();
 
   useEffect(() => {
     fetchHabits();
     fetchTodaysCompletions();
   }, []);
+
+  useEffect(() => {
+    if (habits.length > 0) {
+      fetchTimesShownUp(habits.map((h) => h.id));
+    }
+  }, [habits]);
 
   // Filter to today's scheduled habits
   const todaysHabits = habits.filter((habit) => {
@@ -620,6 +629,7 @@ export default function CheckInScreen() {
           habits={habitStatuses}
           totalSteps={totalSteps}
           engagedCount={engagedCount}
+          timesShownUp={timesShownUp}
           onClose={handleClose}
         />
       </View>
