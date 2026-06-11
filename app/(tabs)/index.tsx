@@ -234,7 +234,7 @@ export default function HomeScreen() {
               {/* Pledge banner or confirmation */}
               {!hasPledgedToday ? (
                 <View style={{ marginTop: 20 }}>
-                  <PledgeBanner onPress={() => router.push('/(tabs)/journey')} />
+                  <PledgeBanner onPress={() => router.push('/pledge')} />
                 </View>
               ) : (
                 <View style={{ marginTop: 20 }}>
