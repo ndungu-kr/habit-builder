@@ -10,8 +10,9 @@ import { useTheme } from '@/providers/ThemeProvider';
 import { useHabitStore } from '@/stores/habitStore';
 import { usePledgeStore } from '@/stores/pledgeStore';
 import { IconCheck, IconChevronRight } from '@/components/Icons';
-import { Habit } from '@/types';
+import { Habit, HabitWhy } from '@/types';
 import { useCompletionStore } from '@/stores/completionStore';
+import { useWhyStore } from '@/stores/whyStore';
 
 // Progress dots - shows which habit you're pledging to
 function PledgeProgress({ current, total }: { current: number; total: number }) {
@@ -158,6 +159,7 @@ function PledgeHabit({
   current,
   total,
   timesShownUp,
+  whys,
   onPledge,
   onClose,
 }: {
@@ -165,15 +167,30 @@ function PledgeHabit({
   current: number;
   total: number;
   timesShownUp: number;
+  whys: HabitWhy[];
   onPledge: () => void;
   onClose: () => void;
 }) {
   const { colors } = useTheme();
+  const router = useRouter();
 
-  // Pick a random why card color for the display
-  const [whyColor] = useState(
+  // Pick the featured why, or the first one, or null
+  const displayWhy = whys.find((w) => w.is_featured) ?? whys[0] ?? null;
+
+  // Pick a random color for the placeholder
+  const [placeholderColor] = useState(
     () => colors.whyCardColors[Math.floor(Math.random() * colors.whyCardColors.length)]
   );
+
+  const handleWhyCardPress = () => {
+    if (!displayWhy) {
+      // No whys yet - navigate to add one
+      router.push({
+        pathname: '/add-why',
+        params: { habitId: habit.id, habitName: habit.name },
+      });
+    }
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -190,14 +207,21 @@ function PledgeHabit({
         </Text>
       </View>
 
-      {/* Why card - text variant */}
+      {/* Why card */}
       <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 28 }}>
-        <View style={[styles.whyCard, { backgroundColor: whyColor }]}>
+        <TouchableOpacity
+          style={[
+            styles.whyCard,
+            { backgroundColor: displayWhy ? displayWhy.color : placeholderColor },
+          ]}
+          onPress={handleWhyCardPress}
+          activeOpacity={displayWhy ? 1 : 0.7}
+        >
           <Text style={styles.whyQuote}>"</Text>
           <Text style={styles.whyCardText}>
-            Tap to add your first why from the habit detail screen
+            {displayWhy ? displayWhy.text_content : 'Tap to add your first why'}
           </Text>
-        </View>
+        </TouchableOpacity>
       </View>
 
       {/* Pledge statement */}
@@ -278,6 +302,7 @@ export default function PledgeScreen() {
   const { habits, fetchHabits } = useHabitStore();
   const { hasPledgedToday, createPledges, fetchTodaysPledges } = usePledgeStore();
   const { timesShownUp, fetchTimesShownUp } = useCompletionStore();
+  const { whysByHabit, fetchWhysForHabits } = useWhyStore();
 
   // 'landing' | 'pledging' | 'confirmation'
   const [stage, setStage] = useState<'landing' | 'pledging' | 'confirmation'>('landing');
@@ -290,6 +315,7 @@ export default function PledgeScreen() {
   useEffect(() => {
     if (habits.length > 0) {
       fetchTimesShownUp(habits.map((h) => h.id));
+      fetchWhysForHabits(habits.map((h) => h.id));
     }
   }, [habits]);
 
@@ -380,6 +406,7 @@ export default function PledgeScreen() {
         current={currentIndex + 1}
         total={todaysHabits.length}
         timesShownUp={timesShownUp[currentHabit.id] ?? 0}
+        whys={whysByHabit[currentHabit.id] ?? []}
         onPledge={handlePledgeHabit}
         onClose={handleClose}
       />
