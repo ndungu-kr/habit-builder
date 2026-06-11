@@ -309,3 +309,63 @@ function MissedFreezeUsed({
     </View>
   );
 }
+
+// Sunrise SVG for the reset screen
+function SunriseIcon() {
+  return (
+    <Svg width={50} height={50} viewBox="0 0 48 48" fill="none">
+      <Circle cx={24} cy={30} r={9} fill="#fff" opacity={0.95} />
+      <SvgG stroke="#fff" strokeWidth={2.4} strokeLinecap="round" opacity={0.85}>
+        <Path d="M24 12v4" />
+        <Path d="M12 28h4" />
+        <Path d="M32 28h4" />
+        <Path d="M15 18l2.5 2.5" />
+        <Path d="M33 20.5L30.5 18" />
+      </SvgG>
+      <Path d="M8 38h32" stroke="#fff" strokeWidth={2} strokeLinecap="round" opacity={0.5} />
+    </Svg>
+  );
+}
+
+function MissedReset({ onContinue }: { onContinue: () => void }) {
+  const { colors } = useTheme();
+
+  return (
+    <View style={{ flex: 1 }}>
+      <View style={{ height: 50 }} />
+      <MDStepHeader current={2} total={3} />
+
+      <View style={styles.centerContent}>
+        <View style={[styles.sunriseCircle, { backgroundColor: colors.accent }]}>
+          <SunriseIcon />
+        </View>
+
+        <Text style={[styles.bigTitle, { color: colors.textPrimary }]}>
+          Today is Day 1 of something new.
+        </Text>
+        <Text style={[styles.bigSub, { color: colors.textSecondary }]}>
+          Your streak resets, but what you've built doesn't go away.
+        </Text>
+
+        {/* Lifetime stats card */}
+        <View style={[styles.lifetimeCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.lifetimeLabel, { color: colors.textSecondary }]}>
+            What stays with you
+          </Text>
+          <View style={styles.lifetimeGrid}>
+            <View>
+              <Text style={[styles.lifetimeStat, { color: colors.textPrimary }]}>-</Text>
+              <Text style={[styles.lifetimeCaption, { color: colors.textSecondary }]}>
+                Days shown up
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      <View style={[styles.footer, { borderTopColor: colors.border }]}>
+        <MDPrimaryCTA label="Begin Day 1" onPress={onContinue} />
+      </View>
+    </View>
+  );
+}
