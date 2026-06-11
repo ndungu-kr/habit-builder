@@ -274,7 +274,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { habits, isLoading, fetchHabits } = useHabitStore();
   const { hasPledgedToday, todaysPledges, fetchTodaysPledges } = usePledgeStore();
-  const { streak, fetchStreak, incrementStreak, checkYesterdayMissed } = useStreakStore();
+  const { streak, fetchStreak, incrementStreak, checkYesterdayMissed, pendingMilestone, setPendingMilestone } = useStreakStore();
   const {
     todaysCompletions,
     fetchTodaysCompletions,
@@ -318,6 +318,25 @@ export default function HomeScreen() {
     };
     check();
   }, [habits, streak]);
+
+  // Navigate to milestone celebration when one is pending
+  useEffect(() => {
+    if (pendingMilestone) {
+      const m = pendingMilestone;
+      setPendingMilestone(null);
+      router.push({
+        pathname: '/milestone',
+        params: {
+          type: m.type,
+          count: String(m.count),
+          habitName: m.habitName || '',
+          habitColor: m.habitColor || '',
+          freezeEarned: m.freezeEarned ? 'true' : 'false',
+          freezeCount: String(m.freezeCount || 0),
+        },
+      });
+    }
+  }, [pendingMilestone]);
 
   // Only show habits scheduled for today
   const todaysHabits = habits.filter((habit) => {
@@ -432,11 +451,11 @@ export default function HomeScreen() {
           variant={getSheetVariant(selectedHabit)}
           onClose={closeSheet}
           onMarkComplete={async () => {
-            await markComplete(selectedHabit.id, selectedHabit.goal_value);
+            await markComplete(selectedHabit.id, selectedHabit.goal_value, selectedHabit.name, selectedHabit.color || '');
             checkAndUpdateStreak();
           }}
           onMarkPartial={async (value, note) => {
-            await markPartial(selectedHabit.id, value, note);
+            await markPartial(selectedHabit.id, value, note, selectedHabit.name, selectedHabit.color || '');
             checkAndUpdateStreak();
           }}
           onSkip={() => { markSkipped(selectedHabit.id); closeSheet(); }}
