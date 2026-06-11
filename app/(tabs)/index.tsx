@@ -252,9 +252,7 @@ export default function HomeScreen() {
         />
       )}
 
-      <PlusFAB onPress={() => {
-        // TODO: navigate to create habit modal
-      }} />
+      <PlusFAB onPress={() => router.push('/create')} />
     </View>
   );
 }
