@@ -369,3 +369,115 @@ function MissedReset({ onContinue }: { onContinue: () => void }) {
     </View>
   );
 }
+
+// Arrow forward SVG
+function ArrowForward() {
+  return (
+    <Svg width={44} height={44} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M5 12h14M13 5l7 7-7 7"
+        stroke="#fff" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function MissedTransition({ onGo }: { onGo: () => void }) {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.transitionBg, { backgroundColor: colors.accent }]}>
+      {/* Soft rings */}
+      <View style={styles.ringOuter} />
+      <View style={styles.ringInner} />
+
+      <View style={{ height: 50 }} />
+      <MDStepHeader current={3} total={3} light />
+
+      <View style={styles.centerContent}>
+        <View style={styles.arrowCircle}>
+          <ArrowForward />
+        </View>
+        <Text style={styles.transitionTitle}>Now let's focus on today.</Text>
+        <Text style={styles.transitionSub}>
+          Your habits are waiting for your intention.
+        </Text>
+      </View>
+
+      <View style={[styles.footer, { borderTopColor: 'rgba(255,255,255,0.12)' }]}>
+        <MDPrimaryCTA label="Go to pledge" onPress={onGo} light />
+      </View>
+    </View>
+  );
+}
+
+// Main flow controller
+export default function MissedDayScreen() {
+  const { colors } = useTheme();
+  const router = useRouter();
+  const { missedDayInfo, useFreeze, resetStreak, clearMissedDay } = useStreakStore();
+
+  const [stage, setStage] = useState<'acknowledge' | 'freeze-used' | 'reset' | 'transition'>('acknowledge');
+
+  // If no missed day info, go back
+  if (!missedDayInfo) {
+    return null;
+  }
+
+  const handleUseFreeze = async () => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    await useFreeze(yesterday.toISOString().split('T')[0]);
+    setStage('freeze-used');
+  };
+
+  const handleLetReset = async () => {
+    await resetStreak();
+    setStage('reset');
+  };
+
+  const handleContinue = () => {
+    setStage('transition');
+  };
+
+  const handleGoPledge = () => {
+    clearMissedDay();
+    router.replace('/pledge');
+  };
+
+  if (stage === 'acknowledge') {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.bg }}>
+        <MissedAcknowledge
+          missedHabits={missedDayInfo.missedHabits}
+          streakValue={missedDayInfo.streakValue}
+          freezesAvailable={missedDayInfo.freezesAvailable}
+          onUseFreeze={handleUseFreeze}
+          onLetReset={handleLetReset}
+        />
+      </View>
+    );
+  }
+
+  if (stage === 'freeze-used') {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.bg }}>
+        <MissedFreezeUsed
+          streakValue={missedDayInfo.streakValue}
+          freezesRemaining={missedDayInfo.freezesAvailable - 1}
+          onContinue={handleContinue}
+        />
+      </View>
+    );
+  }
+
+  if (stage === 'reset') {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.bg }}>
+        <MissedReset onContinue={handleContinue} />
+      </View>
+    );
+  }
+
+  return <MissedTransition onGo={handleGoPledge} />;
+}
