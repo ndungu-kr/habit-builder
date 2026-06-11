@@ -1,14 +1,15 @@
 import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import { Completion, CompletionStatus } from '@/types';
+import { useStreakStore } from '@/stores/streakStore';
 import { MILESTONE_THRESHOLDS } from '@/utils/streakCalculator';
 
 interface CompletionState {
   todaysCompletions: Completion[];
   isLoading: boolean;
   fetchTodaysCompletions: () => Promise<void>;
-  markComplete: (habitId: string, value: number) => Promise<void>;
-  markPartial: (habitId: string, value: number, note?: string) => Promise<void>;
+  markComplete: (habitId: string, value: number, habitName?: string, habitColor?: string) => Promise<void>;
+  markPartial: (habitId: string, value: number, note?: string, habitName?: string, habitColor?: string) => Promise<void>;
   markSkipped: (habitId: string) => Promise<void>;
   undoCompletion: (habitId: string) => Promise<void>;
   timesShownUp: Record<string, number>;
@@ -16,8 +17,7 @@ interface CompletionState {
 }
 
 // Check if a habit just hit a milestone and save it
-async function checkHabitMilestone(habitId: string) {
-  // Count all engaged completions for this habit
+async function checkHabitMilestone(habitId: string, habitName: string, habitColor: string) {
   const { count } = await supabase
     .from('completions')
     .select('*', { count: 'exact', head: true })
@@ -31,6 +31,13 @@ async function checkHabitMilestone(habitId: string) {
         { habit_id: habitId, completion_count: count },
         { onConflict: 'habit_id,completion_count' }
       );
+    // Signal the UI to show celebration
+    useStreakStore.getState().setPendingMilestone({
+      type: 'habit',
+      count,
+      habitName,
+      habitColor,
+    });
   }
 }
 
@@ -55,7 +62,7 @@ export const useCompletionStore = create<CompletionState>((set, get) => ({
   },
 
   // Upsert a completion row for today
-  markComplete: async (habitId, value) => {
+    markComplete: async (habitId, value, habitName, habitColor) => {
     const date = todayStr();
     await supabase
       .from('completions')
@@ -65,10 +72,10 @@ export const useCompletionStore = create<CompletionState>((set, get) => ({
       );
     // Re-fetch to stay in sync
     get().fetchTodaysCompletions();
-    checkHabitMilestone(habitId);
+    checkHabitMilestone(habitId, habitName || '', habitColor || '');
   },
 
-  markPartial: async (habitId, value, note) => {
+    markPartial: async (habitId, value, note, habitName, habitColor) => {
     const date = todayStr();
     await supabase
       .from('completions')
@@ -77,7 +84,7 @@ export const useCompletionStore = create<CompletionState>((set, get) => ({
         { onConflict: 'habit_id,date' }
       );
     get().fetchTodaysCompletions();
-    checkHabitMilestone(habitId);
+    checkHabitMilestone(habitId, habitName || '', habitColor || '');
   },
 
   markSkipped: async (habitId) => {
