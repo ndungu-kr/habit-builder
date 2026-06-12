@@ -13,7 +13,7 @@ import { useTheme } from '@/providers/ThemeProvider';
 import { IconCheck, IconChevronRight } from '@/components/Icons';
 import { Habit, CompletionStatus } from '@/types';
 
-type SheetVariant = 'unpledged' | 'pledged' | 'partial' | 'completed';
+type SheetVariant = 'unpledged' | 'pledged' | 'partial' | 'completed' | 'note';
 
 interface HabitBottomSheetProps {
   visible: boolean;
@@ -26,6 +26,7 @@ interface HabitBottomSheetProps {
   onUndo: () => void;
   onPledgeFirst: () => void;
   onViewDetails: () => void;
+  onAddNote: (note: string) => void;
 }
 
 // Drag handle at top of sheet
@@ -279,11 +280,13 @@ function SheetPledged({
   onMarkComplete,
   onPartial,
   onSkip,
+  onAddNote,
 }: {
   habit: Habit;
   onMarkComplete: () => void;
   onPartial: () => void;
   onSkip: () => void;
+  onAddNote: () => void;
 }) {
   const { colors } = useTheme();
   return (
@@ -312,6 +315,7 @@ function SheetPledged({
           label="Add a note"
           sublabel="Capture a thought without changing status"
           icon={<NoteIcon color={colors.textSecondary} />}
+          onPress={onAddNote}
         />
         <SheetOption
           label="Skip today"
@@ -394,11 +398,13 @@ function SheetCompleted({
   onUndo,
   onClose,
   onViewDetails,
+  onAddNote,
 }: {
   habit: Habit;
   onUndo: () => void;
   onClose: () => void;
   onViewDetails: () => void;
+  onAddNote: () => void;
 }) {
   const { colors } = useTheme();
   const timeStr = new Date().toLocaleTimeString('en-US', {
@@ -434,6 +440,7 @@ function SheetCompleted({
           label="Add a note"
           sublabel="Capture how it went"
           icon={<NoteIcon color={colors.textSecondary} />}
+          onPress={onAddNote}
         />
         <SheetOption
           label="View habit details"
@@ -454,6 +461,65 @@ function SheetCompleted({
   );
 }
 
+// Note input - standalone note without changing completion status
+function SheetNote({
+  habit,
+  onSubmit,
+  onCancel,
+}: {
+  habit: Habit;
+  onSubmit: (note: string) => void;
+  onCancel: () => void;
+}) {
+  const { colors } = useTheme();
+  const [note, setNote] = useState('');
+
+  return (
+    <>
+      <SheetHabitHeader habit={habit} />
+      <View style={{ paddingHorizontal: 24, paddingTop: 18 }}>
+        <Text style={[styles.messageTitle, { color: colors.textPrimary }]}>
+          Add a note
+        </Text>
+        <Text style={[styles.partialHint, { color: colors.textSecondary }]}>
+          Capture a thought without changing status.
+        </Text>
+      </View>
+      <View style={{ paddingHorizontal: 24, paddingTop: 18 }}>
+        <Text style={[styles.noteLabel, { color: colors.textSecondary }]}>
+          What's on your mind?
+        </Text>
+        <TextInput
+          style={[styles.noteInput, { backgroundColor: colors.surfaceAlt, color: colors.textPrimary }]}
+          placeholder="e.g. Felt tired but still thinking about it..."
+          placeholderTextColor={colors.textTertiary}
+          value={note}
+          onChangeText={setNote}
+          multiline
+        />
+      </View>
+      <View style={{ paddingHorizontal: 24, paddingTop: 18, flexDirection: 'row', gap: 10 }}>
+        <TouchableOpacity
+          style={[styles.cancelButton, { backgroundColor: colors.surfaceAlt }]}
+          onPress={onCancel}
+        >
+          <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>Back</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.noteSubmitButton, { backgroundColor: note.trim() ? colors.accent : colors.surfaceAlt }]}
+          onPress={() => note.trim() && onSubmit(note.trim())}
+          disabled={!note.trim()}
+        >
+          <NoteIcon color={note.trim() ? '#fff' : colors.textTertiary} />
+          <Text style={[styles.noteSubmitText, { color: note.trim() ? '#fff' : colors.textTertiary }]}>
+            Save note
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </>
+  );
+}
+
 // Main bottom sheet wrapper with backdrop
 export function HabitBottomSheet({
   visible,
@@ -466,13 +532,14 @@ export function HabitBottomSheet({
   onUndo,
   onPledgeFirst,
   onViewDetails,
+  onAddNote,
 }: HabitBottomSheetProps) {
   const { colors } = useTheme();
   // Track internal variant so "I did some" can switch to partial view
   const [internalVariant, setInternalVariant] = useState<SheetVariant>(initialVariant);
 
   // Reset internal variant when sheet opens with a new variant
-  if (visible && internalVariant !== initialVariant && initialVariant !== 'partial') {
+  if (visible && internalVariant !== initialVariant && initialVariant !== 'partial' && initialVariant !== 'note') {
     setInternalVariant(initialVariant);
   }
 
@@ -484,6 +551,12 @@ export function HabitBottomSheet({
   const handlePartialSubmit = (value: number, note?: string) => {
     onMarkPartial(value, note);
     setInternalVariant('completed');
+  };
+
+  const handleNoteSubmit = (note: string) => {
+    onAddNote(note);
+    // Return to the previous variant after saving
+    setInternalVariant(initialVariant);
   };
 
   const handleUndo = () => {
@@ -509,6 +582,7 @@ export function HabitBottomSheet({
           onMarkComplete={handleMarkComplete}
           onPartial={() => setInternalVariant('partial')}
           onSkip={onSkip}
+          onAddNote={() => setInternalVariant('note')}
         />
       );
       break;
@@ -522,7 +596,16 @@ export function HabitBottomSheet({
       );
       break;
     case 'completed':
-      body = <SheetCompleted habit={habit} onUndo={handleUndo} onClose={onClose} onViewDetails={onViewDetails} />;
+      body = <SheetCompleted habit={habit} onUndo={handleUndo} onClose={onClose} onViewDetails={onViewDetails} onAddNote={() => setInternalVariant('note')} />;
+      break;
+    case 'note':
+      body = (
+        <SheetNote
+          habit={habit}
+          onSubmit={handleNoteSubmit}
+          onCancel={() => setInternalVariant(initialVariant)}
+        />
+      );
       break;
   }
 
@@ -786,5 +869,33 @@ const styles = StyleSheet.create({
     fontFamily: 'Nunito_400Regular',
     fontSize: 13.5,
     marginTop: 4,
+  },
+    // Note view
+  cancelButton: {
+    borderRadius: 999,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelButtonText: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 14.5,
+    letterSpacing: -0.05,
+  },
+  noteSubmitButton: {
+    flex: 1,
+    borderRadius: 999,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  noteSubmitText: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 14.5,
+    letterSpacing: -0.05,
   },
 });

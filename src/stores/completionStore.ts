@@ -8,11 +8,13 @@ import { MILESTONE_THRESHOLDS } from '@/utils/streakCalculator';
 interface CompletionState {
   todaysCompletions: Completion[];
   isLoading: boolean;
+  pendingNotes: Record<string, string>;
   fetchTodaysCompletions: () => Promise<void>;
   markComplete: (habitId: string, value: number, habitName?: string, habitColor?: string) => Promise<void>;
   markPartial: (habitId: string, value: number, note?: string, habitName?: string, habitColor?: string) => Promise<void>;
   markSkipped: (habitId: string) => Promise<void>;
   undoCompletion: (habitId: string) => Promise<void>;
+  addNote: (habitId: string, note: string) => Promise<void>;
   timesShownUp: Record<string, number>;
   fetchTimesShownUp: (habitIds: string[]) => Promise<void>;
 }
@@ -51,6 +53,7 @@ function todayStr(): string {
 export const useCompletionStore = create<CompletionState>((set, get) => ({
   todaysCompletions: [],
   isLoading: false,
+  pendingNotes: {},
   timesShownUp: {},
 
   fetchTodaysCompletions: async () => {
@@ -66,25 +69,37 @@ export const useCompletionStore = create<CompletionState>((set, get) => ({
   // Upsert a completion row for today
     markComplete: async (habitId, value, habitName, habitColor) => {
     const date = todayStr();
+    // Attach any pending note from "Add a note" before completing
+    const pendingNote = get().pendingNotes[habitId];
     await supabase
       .from('completions')
       .upsert(
-        { habit_id: habitId, date, status: 'completed', actual_value: value },
+        { habit_id: habitId, date, status: 'completed', actual_value: value, note: pendingNote || null },
         { onConflict: 'habit_id,date' }
       );
-    // Re-fetch to stay in sync
+    // Clear pending note after saving
+    if (pendingNote) {
+      const { [habitId]: _, ...rest } = get().pendingNotes;
+      set({ pendingNotes: rest });
+    }
     get().fetchTodaysCompletions();
     checkHabitMilestone(habitId, habitName || '', habitColor || '');
   },
 
     markPartial: async (habitId, value, note, habitName, habitColor) => {
     const date = todayStr();
+    // Use provided note, or fall back to any pending note
+    const finalNote = note || get().pendingNotes[habitId] || null;
     await supabase
       .from('completions')
       .upsert(
-        { habit_id: habitId, date, status: 'partial', actual_value: value, note: note || null },
+        { habit_id: habitId, date, status: 'partial', actual_value: value, note: finalNote },
         { onConflict: 'habit_id,date' }
       );
+    if (get().pendingNotes[habitId]) {
+      const { [habitId]: _, ...rest } = get().pendingNotes;
+      set({ pendingNotes: rest });
+    }
     get().fetchTodaysCompletions();
     checkHabitMilestone(habitId, habitName || '', habitColor || '');
   },
@@ -110,7 +125,25 @@ export const useCompletionStore = create<CompletionState>((set, get) => ({
     get().fetchTodaysCompletions();
   },
 
-    // Count total engaged completions per habit (lifetime, not just today)
+  addNote: async (habitId, note) => {
+    const date = todayStr();
+    const existing = get().todaysCompletions.find((c) => c.habit_id === habitId);
+
+    if (existing) {
+      // Completion record exists - update note directly
+      await supabase
+        .from('completions')
+        .update({ note })
+        .eq('habit_id', habitId)
+        .eq('date', date);
+      get().fetchTodaysCompletions();
+    } else {
+      // No completion yet - store pending note for when they complete
+      set({ pendingNotes: { ...get().pendingNotes, [habitId]: note } });
+    }
+  },
+
+  // Count total engaged completions per habit (lifetime, not just today)
   fetchTimesShownUp: async (habitIds) => {
     if (habitIds.length === 0) return;
 

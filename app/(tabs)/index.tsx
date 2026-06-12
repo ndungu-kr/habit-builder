@@ -285,6 +285,7 @@ export default function HomeScreen() {
     fetchTodaysCompletions,
     markComplete,
     markPartial,
+    addNote,
     markSkipped,
     undoCompletion,
     timesShownUp,
@@ -469,6 +470,9 @@ export default function HomeScreen() {
           onMarkPartial={async (value, note) => {
             await markPartial(selectedHabit.id, value, note, selectedHabit.name, selectedHabit.color || '');
             checkAndUpdateStreak();
+          }}
+          onAddNote={async (note) => {
+            await addNote(selectedHabit.id, note);
           }}
           onSkip={() => { markSkipped(selectedHabit.id); closeSheet(); }}
           onUndo={async () => {
