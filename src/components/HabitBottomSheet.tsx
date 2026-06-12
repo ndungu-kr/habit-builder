@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,9 @@ import {
   Pressable,
   TextInput,
   StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  PanResponder,
 } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useTheme } from '@/providers/ThemeProvider';
@@ -538,11 +541,12 @@ export function HabitBottomSheet({
   // Track internal variant so "I did some" can switch to partial view
   const [internalVariant, setInternalVariant] = useState<SheetVariant>(initialVariant);
 
-  // Reset internal variant when sheet opens with a new variant
-  if (visible && internalVariant !== initialVariant && initialVariant !== 'partial' && initialVariant !== 'note') {
-    setInternalVariant(initialVariant);
-  }
-
+  // Reset internal variant only when the sheet opens or habit changes
+  useEffect(() => {
+    if (visible) {
+      setInternalVariant(initialVariant);
+    }
+  }, [visible, initialVariant]);
   const handleMarkComplete = () => {
     onMarkComplete();
     setInternalVariant('completed');
@@ -558,6 +562,17 @@ export function HabitBottomSheet({
     // Return to the previous variant after saving
     setInternalVariant(initialVariant);
   };
+
+  // Pull-down gesture to dismiss the sheet
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gs) => gs.dy > 5,
+      onPanResponderRelease: (_, gs) => {
+        if (gs.dy > 50) onClose();
+      },
+    })
+  ).current;
 
   const handleUndo = () => {
     onUndo();
@@ -610,13 +625,18 @@ export function HabitBottomSheet({
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose}>
-        <Pressable style={[styles.sheet, { backgroundColor: colors.bg }]}>
-          <SheetHandle />
-          {body}
-        </Pressable>
-      </Pressable>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <View style={styles.backdrop}>
+          <Pressable style={{ flex: 1 }} onPress={onClose} />
+          <View style={[styles.sheet, { backgroundColor: colors.bg }]}>
+          <View {...panResponder.panHandlers} style={styles.dragZone}>
+            <SheetHandle />
+          </View>
+            {body}
+          </View>
+        </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -640,6 +660,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 8,
     paddingBottom: 4,
+  },
+  dragZone: {
+    paddingVertical: 8,
   },
   handle: {
     width: 40,
