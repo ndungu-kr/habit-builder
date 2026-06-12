@@ -277,7 +277,7 @@ export default function HomeScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const { habits, isLoading, fetchHabits } = useHabitStore();
-  const { hasPledgedToday, todaysPledges, fetchTodaysPledges } = usePledgeStore();
+  const { hasPledgedToday, todaysPledges, fetchTodaysPledges, createPledges } = usePledgeStore();
   const { streak, fetchStreak, incrementStreak, checkYesterdayMissed, pendingMilestone, setPendingMilestone } = useStreakStore();
   const { profile, fetchProfile } = useProfileStore();
   const {
@@ -360,6 +360,19 @@ export default function HomeScreen() {
     const today = dayMap[new Date().getDay()];
     return habit.scheduled_days?.includes(today as any);
   });
+
+  // Auto-pledge any new habits created after today's pledge
+  useEffect(() => {
+    if (!hasPledgedToday || todaysHabits.length === 0) return;
+
+    const unpledgedIds = todaysHabits
+      .filter((h) => !todaysPledges.find((p) => p.habit_id === h.id))
+      .map((h) => h.id);
+
+    if (unpledgedIds.length > 0) {
+      createPledges(unpledgedIds);
+    }
+  }, [hasPledgedToday, todaysHabits, todaysPledges]);
 
   // Figure out status for a given habit
   const getHabitStatus = (habit: Habit) => {

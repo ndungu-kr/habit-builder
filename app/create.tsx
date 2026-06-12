@@ -743,7 +743,7 @@ export default function CreateHabitScreen() {
       <StepHeader current={step} onClose={() => router.back()} />
       {renderStep()}
       <FooterBar
-        label={isLastStep ? 'Make my pledge' : isSkipStep ? "That's enough for now" : 'Next'}
+        label={isLastStep ? "Let's go" : isSkipStep ? "That's enough for now" : 'Next'}
         onPress={isLastStep ? handleCreate : handleNext}
         disabled={!canAdvance()}
         ghost={isSkipStep}
