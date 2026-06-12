@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  Modal,
+  Pressable,
   StyleSheet,
   Platform,
 } from 'react-native';
@@ -13,10 +15,9 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useAuthStore } from '@/stores/authStore';
 import { useProfileStore } from '@/stores/profileStore';
-import { useHabitStore } from '@/stores/habitStore';
-import { scheduleAllNotifications } from '@/utils/notifications';
 import { Profile } from '@/types';
 import { Svg, Path, Circle, Rect, G } from 'react-native-svg';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 // ─── Inline icons (from handoff) ───
 
@@ -501,24 +502,57 @@ function formatTime(timeStr: string): string {
 // ─── Main settings screen ───
 
 export default function SettingsScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { signOut } = useAuthStore();
   const { profile, fetchProfile, updateProfile } = useProfileStore();
-  const { habits } = useHabitStore();
   const router = useRouter();
 
+  // Which time field is being edited, null means picker is hidden
+  const [editingTime, setEditingTime] = useState<'morning' | 'evening' | null>(null);
+  const [pendingTime, setPendingTime] = useState<Date | null>(null);
+  
   useFocusEffect(
     useCallback(() => {
       fetchProfile();
     }, [])
   );
 
+  // Convert a "HH:MM" string to a Date object for the picker
+  const timeToDate = (timeStr: string): Date => {
+    const [h, m] = timeStr.split(':').map(Number);
+    const d = new Date();
+    d.setHours(h || 8, m || 0, 0, 0);
+    return d;
+  };
+
+    // Track the spinner value as the user scrolls - don't close yet
+  const handleTimeScroll = (_event: any, selectedDate?: Date) => {
+    if (selectedDate) {
+      setPendingTime(selectedDate);
+    }
+  };
+
+  // Only save when the user taps Done
+  const handleTimeDone = async () => {
+    if (!editingTime || !pendingTime) {
+      setEditingTime(null);
+      setPendingTime(null);
+      return;
+    }
+
+    const h = pendingTime.getHours();
+    const m = pendingTime.getMinutes();
+    const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+
+    const field = editingTime === 'morning' ? 'morning_reminder_time' : 'evening_reminder_time';
+    setEditingTime(null);
+    setPendingTime(null);
+
+    await updateProfile({ [field]: timeStr });
+  };
+
   const handleToggle = async (field: keyof Profile, value: boolean) => {
     await updateProfile({ [field]: value } as Partial<Profile>);
-    if (profile) {
-      const updated = { ...profile, [field]: value };
-      scheduleAllNotifications(updated, habits);
-    }
   };
 
   const handleThemeChange = async (opt: string) => {
@@ -598,6 +632,10 @@ export default function SettingsScreen() {
               sublabel="When to set your intention"
               icon={<MorningIcon color={colors.accent} />}
               accentIcon
+              onPress={() => {
+                setPendingTime(profile ? timeToDate(profile.morning_reminder_time) : new Date());
+                setEditingTime('morning');
+              }}
               trailing={
                 <TimeTrailing
                   time={profile ? formatTime(profile.morning_reminder_time) : '8:00 AM'}
@@ -610,6 +648,10 @@ export default function SettingsScreen() {
               label="Evening check-in"
               sublabel="When to reflect on your day"
               icon={<EveningIcon color={colors.textSecondary} />}
+              onPress={() => {
+                setPendingTime(profile ? timeToDate(profile.evening_reminder_time) : new Date());
+                setEditingTime('evening');
+              }}
               trailing={
                 <TimeTrailing
                   time={profile ? formatTime(profile.evening_reminder_time) : '9:00 PM'}
@@ -735,6 +777,75 @@ export default function SettingsScreen() {
           </Text>
         </View>
       </ScrollView>
+            {/* Native iOS time picker - slides up when a time pill is tapped */}
+      {editingTime && (
+        <Modal transparent animationType="fade">
+          <Pressable
+            style={{
+              flex: 1,
+              backgroundColor: 'rgba(0,0,0,0.4)',
+              justifyContent: 'flex-end',
+            }}
+            onPress={() => setEditingTime(null)}
+          >
+            <Pressable
+              style={{
+                backgroundColor: colors.surface,
+                borderTopLeftRadius: 20,
+                borderTopRightRadius: 20,
+                paddingBottom: 30,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  paddingHorizontal: 20,
+                  paddingTop: 16,
+                  paddingBottom: 8,
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: 'Nunito_700Bold',
+                    fontSize: 17,
+                    color: colors.textPrimary,
+                  }}
+                >
+                  {editingTime === 'morning' ? 'Morning pledge time' : 'Evening check-in time'}
+                </Text>
+                <TouchableOpacity onPress={handleTimeDone}>
+                  <Text
+                    style={{
+                      fontFamily: 'Nunito_700Bold',
+                      fontSize: 15,
+                      color: colors.accent,
+                    }}
+                  >
+                    Done
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={
+                  profile
+                    ? timeToDate(
+                        editingTime === 'morning'
+                          ? profile.morning_reminder_time
+                          : profile.evening_reminder_time
+                      )
+                    : new Date()
+                }
+                mode="time"
+                display="spinner"
+                onChange={handleTimeScroll}
+                themeVariant={isDark ? 'dark' : 'light'}
+              />
+            </Pressable>
+          </Pressable>
+        </Modal>
+      )}
     </View>
   );
 }
