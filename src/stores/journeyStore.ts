@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
+import { useProfileStore } from '@/stores/profileStore';
 
 interface HabitProgress {
   habitId: string;
@@ -32,8 +33,13 @@ interface JourneyState {
   fetchJourneyData: () => Promise<void>;
 }
 
-function getWeekday(date: Date): number {
-  // 0=Mon ... 6=Sun
+// Returns 0-6 where 0 is the user's chosen first day of the week
+function getWeekday(date: Date, sundayStart: boolean): number {
+  if (sundayStart) {
+    // 0=Sun, 1=Mon, ..., 6=Sat (JS native)
+    return date.getDay();
+  }
+  // 0=Mon, 1=Tue, ..., 6=Sun
   return (date.getDay() + 6) % 7;
 }
 
@@ -54,6 +60,10 @@ export const useJourneyStore = create<JourneyState>((set) => ({
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { set({ isLoading: false }); return; }
+
+    // Read user's week start preference
+    const weekStart = useProfileStore.getState().profile?.week_start_day ?? 'monday';
+    const sundayStart = weekStart === 'sunday';
 
     // Fetch habits for context
     const { data: habits } = await supabase
@@ -80,22 +90,23 @@ export const useJourneyStore = create<JourneyState>((set) => ({
 
     // ── This week completion rate ──
     const today = new Date();
-    const dayOfWeek = getWeekday(today);
-    const mondayDate = new Date(today);
-    mondayDate.setDate(today.getDate() - dayOfWeek);
-    const weekStart = formatDate(mondayDate);
+    const dayOfWeek = getWeekday(today, sundayStart);
+    // First day of the current week
+    const weekStartDate = new Date(today);
+    weekStartDate.setDate(today.getDate() - dayOfWeek);
+    const weekStartStr = formatDate(weekStartDate);
     const weekEnd = formatDate(today);
 
-    const dayMap: Record<number, string> = {
-      0: 'mon', 1: 'tue', 2: 'wed', 3: 'thu', 4: 'fri', 5: 'sat', 6: 'sun',
-    };
+    const dayMap: Record<number, string> = sundayStart
+      ? { 0: 'sun', 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat' }
+      : { 0: 'mon', 1: 'tue', 2: 'wed', 3: 'thu', 4: 'fri', 5: 'sat', 6: 'sun' };
 
     // Count scheduled habit-days this week (up to today)
     let scheduledThisWeek = 0;
     let engagedThisWeek = 0;
     for (let d = 0; d <= dayOfWeek; d++) {
-      const checkDate = new Date(mondayDate);
-      checkDate.setDate(mondayDate.getDate() + d);
+      const checkDate = new Date(weekStartDate);
+      checkDate.setDate(weekStartDate.getDate() + d);
       const dateStr = formatDate(checkDate);
       const dayName = dayMap[d];
 
@@ -140,7 +151,7 @@ export const useJourneyStore = create<JourneyState>((set) => ({
     // Build 13 weeks of cells
     // Find the Monday that starts our 13-week window
     const gridStart = new Date(today);
-    const todayDow = getWeekday(today);
+    const todayDow = getWeekday(today, sundayStart);
     gridStart.setDate(today.getDate() - todayDow - (12 * 7));
 
     const weeks: HeatmapCell[][] = [];
@@ -203,7 +214,7 @@ export const useJourneyStore = create<JourneyState>((set) => ({
       let totalEngaged = 0;
       const cursor = new Date(Math.max(created.getTime(), heatmapStart.getTime()));
       while (cursor <= today) {
-        const dn = dayMap[getWeekday(cursor)];
+        const dn = dayMap[getWeekday(cursor, sundayStart)];
         const isScheduled = h.schedule_type === 'everyday' ||
           (h.scheduled_days && h.scheduled_days.includes(dn));
         if (isScheduled) {
@@ -222,7 +233,7 @@ export const useJourneyStore = create<JourneyState>((set) => ({
       const sparkCursor = new Date(today);
       let found = 0;
       while (found < 10 && sparkCursor >= heatmapStart) {
-        const dn = dayMap[getWeekday(sparkCursor)];
+        const dn = dayMap[getWeekday(sparkCursor, sundayStart)];
         const isScheduled = h.schedule_type === 'everyday' ||
           (h.scheduled_days && h.scheduled_days.includes(dn));
         if (isScheduled) {

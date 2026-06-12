@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useStreakStore } from '@/stores/streakStore';
 import { useJourneyStore } from '@/stores/journeyStore';
+import { useProfileStore } from '@/stores/profileStore';
 import { IconFlame, IconSnowflake } from '@/components/Icons';
 import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
 
@@ -235,7 +236,11 @@ function HeatmapLegend() {
 function ActivityHeatmap() {
   const { colors } = useTheme();
   const { heatmapData } = useJourneyStore();
-  const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  const weekStart = useProfileStore((s) => s.profile?.week_start_day ?? 'monday');
+  // Shift labels to match whichever day starts the week
+  const dayLabels = weekStart === 'sunday'
+    ? ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+    : ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
   return (
     <View style={[hStyles.card, { backgroundColor: colors.surface }]}>
