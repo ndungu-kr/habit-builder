@@ -626,8 +626,9 @@ export default function SettingsScreen() {
                 <Switch
                   value={profile?.afternoon_nudge_enabled ?? false}
                   onValueChange={(val) => handleToggle('afternoon_nudge_enabled', val)}
-                  trackColor={{ false: colors.surfaceAlt, true: colors.accent }}
+                  trackColor={{ false: colors.border, true: colors.accent }}
                   thumbColor="#fff"
+                  ios_backgroundColor={colors.border}
                 />
               }
             />
@@ -640,8 +641,9 @@ export default function SettingsScreen() {
                 <Switch
                   value={profile?.milestone_notifications_enabled ?? true}
                   onValueChange={(val) => handleToggle('milestone_notifications_enabled', val)}
-                  trackColor={{ false: colors.surfaceAlt, true: colors.accent }}
+                  trackColor={{ false: colors.border, true: colors.accent }}
                   thumbColor="#fff"
+                  ios_backgroundColor={colors.border}
                 />
               }
               last
