@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { Slot, useRouter, useSegments } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import { ThemeProvider, useTheme } from '@/providers/ThemeProvider';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -9,24 +10,49 @@ function RootLayoutNav() {
   const router = useRouter();
   const segments = useSegments();
   const { session, initialized } = useAuthStore();
+  const [routingReady, setRoutingReady] = useState(false);
+
+  // Use stable primitives so token refreshes don't re-trigger routing
+  const isLoggedIn = !!session;
+  const userId = session?.user?.id;
 
   useEffect(() => {
     if (!initialized) return;
 
-    // Check which route group the user is currently in
     const inAuthGroup = segments[0] === '(auth)';
 
-    if (!session && !inAuthGroup) {
-      // Not logged in and not on auth screen - redirect to login
-      router.replace('/(auth)/login');
-    } else if (session && inAuthGroup) {
-      // Logged in but still on auth screen - redirect to home
-      router.replace('/(tabs)');
+    // Not logged in - send to auth
+    if (!isLoggedIn) {
+      if (!inAuthGroup) router.replace('/(auth)/login');
+      setRoutingReady(true);
+      return;
     }
-  }, [session, initialized, segments]);
 
-  // Show loading screen while checking for existing session
-  if (!initialized) {
+    // Only check onboarding flag for routes that need guarding
+    // Auth screens (just logged in) and tabs (cold launch)
+    if (!inAuthGroup && segments[0] !== '(tabs)') {
+      setRoutingReady(true);
+      return;
+    }
+
+    // Async check - only runs for auth and tabs routes
+    const checkOnboarding = async () => {
+      const flag = await SecureStore.getItemAsync(`onboarding_done_${userId}`);
+      const onboardingDone = flag === 'true';
+
+      if (inAuthGroup) {
+        router.replace(onboardingDone ? '/(tabs)' : '/onboarding');
+      } else if (!onboardingDone) {
+        router.replace('/onboarding');
+      }
+
+      setRoutingReady(true);
+    };
+
+    checkOnboarding();
+  }, [isLoggedIn, userId, initialized, segments]);
+
+  if (!initialized || (isLoggedIn && !routingReady)) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg }}>
         <ActivityIndicator size="large" color={colors.accent} />

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import {
 } from '@/utils/notifications';
 import { useHabitStore } from '@/stores/habitStore';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useAuthStore } from '@/stores/authStore';
 
 // ── Progress dots ──
 
@@ -540,36 +541,58 @@ function StepRhythm({ onFinish }: { onFinish: () => void }) {
 export default function OnboardingScreen() {
   const { colors } = useTheme();
   const router = useRouter();
+  const { session } = useAuthStore();
   const { fetchProfile } = useProfileStore();
 
-  // Steps: welcome(1), identity(2), [create habit externally](3), rhythm(4), done
   const [step, setStep] = useState<'welcome' | 'identity' | 'rhythm'>('welcome');
-  // Track if we came back from habit creation
-  const [createdHabit, setCreatedHabit] = useState(false);
+  const [ready, setReady] = useState(false);
 
-  // If user created a habit and came back, jump to rhythm
-  // We detect this by checking if habits exist after returning
-  const { habits } = useHabitStore();
+  // On mount: check if returning from create, or if existing user
+  useEffect(() => {
+    const init = async () => {
+      // Check if mid-onboarding (returning from habit creation)
+      const savedStep = await SecureStore.getItemAsync(`onboarding_step_${session?.user.id}`);
+      if (savedStep === 'rhythm') {
+        setStep('rhythm');
+        await SecureStore.deleteItemAsync(`onboarding_step_${session?.user.id}`);
+        setReady(true);
+        return;
+      }
 
-  // When coming back from create screen with a new habit
-  if (step === 'identity' && habits.length > 0 && !createdHabit) {
-    setCreatedHabit(true);
-    setStep('rhythm');
-  }
+      // Check DB for existing user who already has habits
+      await useHabitStore.getState().fetchHabits();
+      const existing = useHabitStore.getState().habits;
+      if (existing.length > 0) {
+        await SecureStore.setItemAsync(`onboarding_done_${session?.user.id}`, 'true');
+        router.replace('/(tabs)');
+        return;
+      }
+
+      setReady(true);
+    };
+    init();
+  }, []);
 
   const handleFinish = async () => {
     // Mark onboarding complete locally
-    await SecureStore.setItemAsync('has_completed_onboarding', 'true');
+    await SecureStore.setItemAsync(`onboarding_done_${session?.user.id}`, 'true');
     // Make sure profile is fresh for the home screen
     await fetchProfile();
     router.replace('/(tabs)');
   };
 
+  if (!ready) {
+    return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       {step === 'welcome' && <StepWelcome onNext={() => setStep('identity')} />}
       {step === 'identity' && (
-        <StepIdentity onCreateHabit={() => router.push('/create')} />
+        <StepIdentity onCreateHabit={async () => {
+          await SecureStore.setItemAsync(`onboarding_step_${session?.user.id}`, 'rhythm');
+          router.push('/create');
+        }} />
       )}
       {step === 'rhythm' && <StepRhythm onFinish={handleFinish} />}
     </View>
