@@ -14,6 +14,7 @@ import {
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useAuthStore } from '@/stores/authStore';
+import { useHabitStore } from '@/stores/habitStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { Profile } from '@/types';
 import { Svg, Path, Circle, Rect, G } from 'react-native-svg';
@@ -126,6 +127,27 @@ function CalendarIcon({ color }: { color: string }) {
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
       <Rect x={3.5} y={5} width={17} height={15} rx={2} stroke={color} strokeWidth={1.8} />
       <Path d="M8 3v4M16 3v4M4 10h16" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+function ListIcon({ color }: { color: string }) {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Rect x={4} y={5} width={3} height={3} rx={0.6} fill={color} />
+      <Rect x={4} y={11} width={3} height={3} rx={0.6} fill={color} />
+      <Rect x={4} y={17} width={3} height={3} rx={0.6} fill={color} />
+      <Path d="M10 6.5h10M10 12.5h10M10 18.5h7" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+function ArchiveIcon({ color }: { color: string }) {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Rect x={3} y={5} width={18} height={4.5} rx={1.2} stroke={color} strokeWidth={1.8} />
+      <Path d="M5 9.5V19a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5" stroke={color} strokeWidth={1.8} />
+      <Path d="M10 14h4" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
     </Svg>
   );
 }
@@ -343,6 +365,24 @@ function TimeTrailing({ time, colors }: { time: string; colors: any }) {
   );
 }
 
+function ValuePill({ value, colors }: { value: string; colors: any }) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+      <Text
+        style={{
+          fontFamily: 'Nunito_700Bold',
+          fontSize: 14,
+          color: colors.textSecondary,
+          letterSpacing: -0.05,
+        }}
+      >
+        {value}
+      </Text>
+      <ChevronRight color={colors.textTertiary} />
+    </View>
+  );
+}
+
 function Segmented({
   options,
   active,
@@ -506,6 +546,7 @@ export default function SettingsScreen() {
   const { signOut } = useAuthStore();
   const { profile, fetchProfile, updateProfile } = useProfileStore();
   const router = useRouter();
+  const { habits, archivedHabits, fetchArchivedHabits } = useHabitStore();
 
   // Which time field is being edited, null means picker is hidden
   const [editingTime, setEditingTime] = useState<'morning' | 'evening' | null>(null);
@@ -514,6 +555,7 @@ export default function SettingsScreen() {
   useFocusEffect(
     useCallback(() => {
       fetchProfile();
+      fetchArchivedHabits();
     }, [])
   );
 
@@ -693,6 +735,30 @@ export default function SettingsScreen() {
           </SGroup>
         </View>
 
+        {/* Habits */}
+        <View style={{ paddingTop: 28 }}>
+          <SGroupLabel label="Habits" colors={colors} />
+          <SGroup colors={colors}>
+            <SRow
+              colors={colors}
+              label="Active habits"
+              sublabel="Reorder, edit, or archive"
+              icon={<ListIcon color={colors.textSecondary} />}
+              trailing={<ValuePill value={`${habits.length} of 5`} colors={colors} />}
+              onPress={() => router.push('/habits-manage')}
+            />
+            <SRow
+              colors={colors}
+              label="Archived"
+              sublabel="View past habits, all data preserved"
+              icon={<ArchiveIcon color={colors.textSecondary} />}
+              trailing={<ValuePill value={`${archivedHabits.length}`} colors={colors} />}
+              onPress={() => router.push('/habits-manage')}
+              last
+            />
+          </SGroup>
+        </View>
+        
         {/* App preferences */}
         <View style={{ paddingTop: 28 }}>
           <SGroupLabel label="App preferences" colors={colors} />
