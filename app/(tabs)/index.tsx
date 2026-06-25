@@ -29,6 +29,7 @@ import {
 } from '@/components/Icons';
 import { Habit } from '@/types';
 import { shouldStreakIncrement } from '@/utils/streakCalculator';
+import Svg, { Path } from 'react-native-svg';
 
 // Returns greeting based on time of day
 function getGreeting(): string {
@@ -256,6 +257,108 @@ function FreshStartHero() {
   );
 }
 
+function RestDayContent({ totalShownUp }: { totalShownUp: number }) {
+  const { colors } = useTheme();
+  const router = useRouter();
+
+  return (
+    <View style={{ paddingHorizontal: 24, paddingTop: 40 }}>
+      <View style={{
+        backgroundColor: colors.surface,
+        borderRadius: 20,
+        padding: 32,
+        paddingHorizontal: 24,
+        alignItems: 'center',
+      }}>
+        <View style={{
+          width: 64,
+          height: 64,
+          borderRadius: 999,
+          backgroundColor: colors.accentSoft,
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: 18,
+        }}>
+          <Svg width={32} height={32} viewBox="0 0 24 24" fill="none">
+            <Path
+              d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"
+              fill={colors.accent}
+              stroke={colors.accent}
+              strokeWidth={1.4}
+              strokeLinejoin="round"
+            />
+          </Svg>
+        </View>
+        <Text style={{
+          fontFamily: 'Nunito_700Bold',
+          fontSize: 20,
+          color: colors.textPrimary,
+          letterSpacing: -0.2,
+        }}>
+          Rest day
+        </Text>
+        <Text style={{
+          fontFamily: 'Nunito_500Medium',
+          fontSize: 14.5,
+          color: colors.textSecondary,
+          marginTop: 6,
+          lineHeight: 22,
+          textAlign: 'center',
+          maxWidth: 280,
+        }}>
+          No habits scheduled today. Enjoy your day off - your streak holds.
+        </Text>
+      </View>
+
+      <TouchableOpacity
+        onPress={() => router.push('/(tabs)/journey')}
+        activeOpacity={0.7}
+        style={{
+          marginTop: 16,
+          backgroundColor: colors.surface,
+          borderRadius: 16,
+          padding: 16,
+          paddingHorizontal: 18,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <View>
+          <Text style={{
+            fontFamily: 'Nunito_700Bold',
+            fontSize: 11.5,
+            color: colors.textSecondary,
+            letterSpacing: 1.3,
+            textTransform: 'uppercase',
+          }}>
+            Lifetime
+          </Text>
+          <Text style={{
+            fontFamily: 'Nunito_700Bold',
+            fontSize: 22,
+            color: colors.textPrimary,
+            marginTop: 4,
+            letterSpacing: -0.3,
+          }}>
+            {totalShownUp} days shown up
+          </Text>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Text style={{
+            fontFamily: 'Nunito_600SemiBold',
+            fontSize: 13,
+            color: colors.accent,
+          }}>
+            Journey
+          </Text>
+          <IconChevronRight size={14} color={colors.accent} />
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 // Floating action button for creating habits
 function PlusFAB({ onPress }: { onPress: () => void }) {
   const { colors } = useTheme();
@@ -424,6 +527,10 @@ export default function HomeScreen() {
             No habits yet - tap + to create one
           </Text>
         </View>
+      ) : todaysHabits.length === 0 && habits.length > 0 ? (
+        <RestDayContent
+          totalShownUp={Object.values(timesShownUp).reduce((sum, v) => sum + v, 0)}
+        />
       ) : (
         <FlatList
           data={todaysHabits}
@@ -432,7 +539,7 @@ export default function HomeScreen() {
           contentContainerStyle={styles.listContent}
           ListHeaderComponent={
             <>
-              <FreshStartHero />
+              {(streak?.current_streak ?? 0) === 0 && <FreshStartHero />}
               {!hasPledgedToday ? (
                 <View style={{ marginTop: 20 }}>
                   <PledgeBanner onPress={() => router.push('/pledge')} />
