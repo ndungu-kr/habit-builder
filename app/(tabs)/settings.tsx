@@ -14,6 +14,8 @@ import {
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useAuthStore } from '@/stores/authStore';
+import { supabase } from '@/lib/supabase';
+import * as SecureStore from 'expo-secure-store';
 import { useHabitStore } from '@/stores/habitStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { Profile } from '@/types';
@@ -543,7 +545,7 @@ function formatTime(timeStr: string): string {
 
 export default function SettingsScreen() {
   const { colors, isDark } = useTheme();
-  const { signOut } = useAuthStore();
+  const { signOut, session } = useAuthStore();
   const { profile, fetchProfile, updateProfile } = useProfileStore();
   const router = useRouter();
   const { habits, archivedHabits, fetchArchivedHabits } = useHabitStore();
@@ -623,9 +625,23 @@ export default function SettingsScreen() {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => {
-            // TODO: implement actual account deletion
-            Alert.alert('Not yet available', 'Account deletion will be available soon.');
+          onPress: async () => {
+            const userId = session?.user?.id;
+
+            const { error } = await supabase.rpc('delete_user_account');
+
+            if (error) {
+              Alert.alert('Error', 'Could not delete account. Please try again.');
+              return;
+            }
+
+            // Clear local onboarding flag
+            if (userId) {
+              await SecureStore.deleteItemAsync(`onboarding_done_${userId}`);
+            }
+
+            // Sign out locally
+            await signOut();
           },
         },
       ]
