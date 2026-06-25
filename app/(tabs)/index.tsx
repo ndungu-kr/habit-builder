@@ -238,7 +238,7 @@ function SummaryFooter({
 }
 
 // Fresh start hero card when streak is 0
-function FreshStartHero() {
+function FreshStartHero({ totalShownUp }: { totalShownUp: number }) {
   const { colors } = useTheme();
 
   return (
@@ -251,6 +251,7 @@ function FreshStartHero() {
         </Text>
         <Text style={[styles.freshStartSub, { color: colors.textSecondary }]}>
           Every streak starts with showing up once.
+          {totalShownUp > 0 ? ` You've already shown up ${totalShownUp} times across your habits - that doesn't go away.` : ''}
         </Text>
       </View>
     </View>
@@ -539,7 +540,11 @@ export default function HomeScreen() {
           contentContainerStyle={styles.listContent}
           ListHeaderComponent={
             <>
-              {(streak?.current_streak ?? 0) === 0 && <FreshStartHero />}
+              {(streak?.current_streak ?? 0) === 0 && (
+                <FreshStartHero
+                  totalShownUp={Object.values(timesShownUp).reduce((sum, v) => sum + v, 0)}
+                />
+              )}
               {!hasPledgedToday ? (
                 <View style={{ marginTop: 20 }}>
                   <PledgeBanner onPress={() => router.push('/pledge')} />
