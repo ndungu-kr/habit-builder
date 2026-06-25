@@ -15,6 +15,7 @@ import { useTheme } from '@/providers/ThemeProvider';
 import { useHabitStore } from '@/stores/habitStore';
 import { ScheduleType, Weekday, GoalUnit } from '@/types';
 import Svg, { Path } from 'react-native-svg';
+import HelpTooltip from '@/components/HelpTooltip';
 
 const DAYS: { key: Weekday; label: string }[] = [
   { key: 'mon', label: 'M' },
@@ -55,23 +56,24 @@ function BackIcon({ color }: { color: string }) {
 
 // ─── Field section ───
 
-function FieldSection({ label, children }: { label: string; children: React.ReactNode }) {
+function FieldSection({ label, trailing, children }: { label: string; trailing?: React.ReactNode; children: React.ReactNode }) {
   const { colors } = useTheme();
   return (
     <View style={{ paddingTop: 24 }}>
-      <Text
-        style={{
-          fontFamily: 'Nunito_700Bold',
-          fontSize: 12,
-          color: colors.textSecondary,
-          letterSpacing: 1.2,
-          textTransform: 'uppercase',
-          paddingHorizontal: 24,
-          marginBottom: 10,
-        }}
-      >
-        {label}
-      </Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 24, marginBottom: 10 }}>
+        <Text
+          style={{
+            fontFamily: 'Nunito_700Bold',
+            fontSize: 12,
+            color: colors.textSecondary,
+            letterSpacing: 1.2,
+            textTransform: 'uppercase',
+          }}
+        >
+          {label}
+        </Text>
+        {trailing}
+      </View>
       {children}
     </View>
   );
@@ -306,7 +308,17 @@ export default function EditHabitScreen() {
         </FieldSection>
 
         {/* Schedule */}
-        <FieldSection label="Schedule">
+        <FieldSection
+          label="Schedule"
+          trailing={
+            <HelpTooltip
+              mode="popover"
+              title="Editing task days"
+              body="Changing your schedule won't affect your current streak."
+              size={16}
+            />
+          }
+        >
           <View style={{ paddingHorizontal: 24 }}>
             {/* Toggle */}
             <View

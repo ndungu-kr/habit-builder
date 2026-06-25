@@ -10,6 +10,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useStreakStore } from '@/stores/streakStore';
 import { IconFlame, IconSnowflake } from '@/components/Icons';
+import HelpTooltip from '@/components/HelpTooltip';
 
 // Progress dots - no close button, this flow is mandatory
 function MDStepHeader({
@@ -207,9 +208,22 @@ function MissedAcknowledge({
                 <IconSnowflake size={22} color={colors.accent} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.decisionTitle, { color: colors.textPrimary }]}>
-                  You have {freezesAvailable} streak freeze{freezesAvailable !== 1 ? 's' : ''}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={[styles.decisionTitle, { color: colors.textPrimary, flex: 1 }]}>
+                    You have {freezesAvailable} streak freeze{freezesAvailable !== 1 ? 's' : ''}
+                  </Text>
+                  <HelpTooltip
+                    mode="sheet"
+                    title="Streak freeze"
+                    body="A grace mechanic. You earn one every 7 days you show up, and you can bank up to 3."
+                    examples={[
+                      "A freeze holds your streak at its current number - it doesn't add to it, because you didn't do the work that day.",
+                      "Use a freeze when life gets in the way. Decline it if you want a clean reset.",
+                      "The freeze decision happens the next morning, not the night you miss.",
+                    ]}
+                    size={18}
+                  />
+                </View>
                 <Text style={[styles.decisionSub, { color: colors.textSecondary }]}>
                   Earned every 7 days you show up
                 </Text>

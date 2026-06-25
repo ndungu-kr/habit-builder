@@ -15,6 +15,7 @@ import Svg, { Circle, Path } from 'react-native-svg';
 import { useTheme } from '@/providers/ThemeProvider';
 import { IconCheck, IconChevronRight } from '@/components/Icons';
 import { Habit, CompletionStatus } from '@/types';
+import HelpTooltip from '@/components/HelpTooltip';
 
 type SheetVariant = 'unpledged' | 'pledged' | 'partial' | 'completed' | 'note';
 
@@ -159,6 +160,7 @@ function SheetOption({
   accent = false,
   chevron = false,
   last = false,
+  trailing,
   onPress,
 }: {
   label: string;
@@ -168,6 +170,7 @@ function SheetOption({
   accent?: boolean;
   chevron?: boolean;
   last?: boolean;
+  trailing?: React.ReactNode;
   onPress?: () => void;
 }) {
   const { colors } = useTheme();
@@ -193,6 +196,7 @@ function SheetOption({
           </Text>
         )}
       </View>
+      {trailing}
       {chevron && <IconChevronRight size={16} color={colors.textTertiary} />}
     </TouchableOpacity>
   );
@@ -327,6 +331,14 @@ function SheetPledged({
           danger
           last
           onPress={onSkip}
+          trailing={
+            <HelpTooltip
+              mode="popover"
+              title="Skip vs miss"
+              body="Both break the streak; skips are tracked separately as a conscious choice."
+              size={18}
+            />
+          }
         />
       </View>
     </>
@@ -351,9 +363,16 @@ function SheetPartial({
     <>
       <SheetHabitHeader habit={habit} />
       <View style={{ paddingHorizontal: 24, paddingTop: 18 }}>
-        <Text style={[styles.messageTitle, { color: colors.textPrimary }]}>
-          How much did you do?
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Text style={[styles.messageTitle, { color: colors.textPrimary, flex: 1 }]}>
+            How much did you do?
+          </Text>
+          <HelpTooltip
+            mode="popover"
+            title="Partial completion"
+            body="Keeps your streak going and adds to cumulative stats. Every bit counts."
+          />
+        </View>
         <Text style={[styles.partialHint, { color: colors.textSecondary }]}>
           Every bit of effort counts.
         </Text>

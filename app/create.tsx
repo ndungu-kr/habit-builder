@@ -15,6 +15,7 @@ import { spacing, radii } from '@/theme/spacing';
 import { useHabitStore } from '@/stores/habitStore';
 import { IconCheck, IconPlus } from '@/components/Icons';
 import { ScheduleType, Weekday, GoalUnit } from '@/types';
+import HelpTooltip from '@/components/HelpTooltip';
 
 const TOTAL_STEPS = 6;
 
@@ -240,11 +241,22 @@ function StepGoal({
 
   return (
     <View style={{ flex: 1 }}>
-      <StepTitle
-        eyebrow="Step 2"
-        title="What counts as showing up?"
-        subtitle="A clear daily target. This also powers your cumulative stats."
-      />
+      <View style={{ paddingHorizontal: 24, paddingTop: 24 }}>
+        <Text style={[styles.eyebrow, { color: colors.accent }]}>Step 2</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 }}>
+          <Text style={[styles.titleText, { color: colors.textPrimary, flex: 1 }]}>
+            What counts as showing up?
+          </Text>
+          <HelpTooltip
+            mode="popover"
+            title="What's this for?"
+            body="This sets your daily target - and powers your cumulative stats so you can see how much you've invested over time."
+          />
+        </View>
+        <Text style={[styles.subtitle, { color: colors.textSecondary, marginTop: 8 }]}>
+          A clear daily target. This also powers your cumulative stats.
+        </Text>
+      </View>
 
       {/* Big number display */}
       <View style={{ padding: 24, paddingTop: 24 }}>
@@ -351,11 +363,22 @@ function StepSchedule({
 
   return (
     <View style={{ flex: 1 }}>
-      <StepTitle
-        eyebrow="Step 3"
-        title="Which days?"
-        subtitle="Your streak counts consecutive scheduled days. Off-days don't break it."
-      />
+      <View style={{ paddingHorizontal: 24, paddingTop: 24 }}>
+        <Text style={[styles.eyebrow, { color: colors.accent }]}>Step 3</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 }}>
+          <Text style={[styles.titleText, { color: colors.textPrimary, flex: 1 }]}>
+            Which days?
+          </Text>
+          <HelpTooltip
+            mode="popover"
+            title="Task days"
+            body="Streaks count consecutive scheduled days; off-days don't affect them."
+          />
+        </View>
+        <Text style={[styles.subtitle, { color: colors.textSecondary, marginTop: 8 }]}>
+          Your streak counts consecutive scheduled days. Off-days don't break it.
+        </Text>
+      </View>
       <View style={{ padding: 24, gap: 12 }}>
         {/* Every day card */}
         <TouchableOpacity

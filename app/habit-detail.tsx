@@ -15,6 +15,7 @@ import { useHabitDetailStore } from '@/stores/habitDetailStore';
 import { useHabitStore } from '@/stores/habitStore';
 import { IconFlame, IconChevronRight, IconPlus } from '@/components/Icons';
 import { HabitWhy } from '@/types';
+import HelpTooltip from '@/components/HelpTooltip';
 
 // ── Icons ──
 
@@ -218,14 +219,17 @@ const whyStyles = StyleSheet.create({
 
 // ── Mini Stat ──
 
-function MiniStat({ value, label, accent = false }: { value: string; label: string; accent?: boolean }) {
+function MiniStat({ value, label, accent = false, trailing }: { value: string; label: string; accent?: boolean; trailing?: React.ReactNode }) {
   const { colors } = useTheme();
   return (
     <View style={[statStyles.card, { backgroundColor: colors.surface }]}>
       <Text style={[statStyles.value, { color: accent ? colors.accent : colors.textPrimary }]}>
         {value}
       </Text>
-      <Text style={[statStyles.label, { color: colors.textSecondary }]}>{label}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 }}>
+        <Text style={[statStyles.label, { color: colors.textSecondary, marginTop: 0 }]}>{label}</Text>
+        {trailing}
+      </View>
     </View>
   );
 }
@@ -548,7 +552,19 @@ export default function HabitDetailScreen() {
         <View style={{ marginTop: 28 }}>
           <SectionHeader label="Stats" />
           <View style={styles.statsGrid}>
-            <MiniStat value={String(stats.timesShownUp)} label="Times shown up" accent />
+            <MiniStat
+              value={String(stats.timesShownUp)}
+              label="Times shown up"
+              accent
+              trailing={
+                <HelpTooltip
+                  mode="popover"
+                  title="Times shown up"
+                  body="Complete + partial days for this habit. Only grows - never resets."
+                  size={16}
+                />
+              }
+            />
             <MiniStat value={String(stats.totalCompleted)} label="Total completions" />
           </View>
           <View style={[styles.statsGrid, { marginTop: 10 }]}>
