@@ -22,6 +22,14 @@ interface HabitState {
   archiveHabit: (id: string) => Promise<string | null>;
   reactivateHabit: (id: string) => Promise<string | null>;
   reorderHabits: (orderedIds: string[]) => Promise<string | null>;
+  updateHabit: (id: string, updates: Partial<{
+    name: string;
+    color: string;
+    goal_value: number;
+    goal_unit: GoalUnit;
+    schedule_type: ScheduleType;
+    scheduled_days: Weekday[] | null;
+  }>) => Promise<string | null>;
 }
 
 export const useHabitStore = create<HabitState>((set, get) => ({
@@ -143,6 +151,17 @@ export const useHabitStore = create<HabitState>((set, get) => ({
     const results = await Promise.all(updates);
     const firstError = results.find((r) => r.error);
     if (firstError?.error) return firstError.error.message;
+
+    await get().fetchHabits();
+    return null;
+  },
+  updateHabit: async (id, updates) => {
+    const { error } = await supabase
+      .from('habits')
+      .update(updates)
+      .eq('id', id);
+
+    if (error) return error.message;
 
     await get().fetchHabits();
     return null;

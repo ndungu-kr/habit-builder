@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useWhyStore } from '@/stores/whyStore';
@@ -408,6 +408,7 @@ const aStyles = StyleSheet.create({
 
 export default function HabitDetailScreen() {
   const { colors } = useTheme();
+  const router = useRouter();
   const params = useLocalSearchParams<{
     habitId: string;
     habitName: string;
@@ -428,7 +429,7 @@ export default function HabitDetailScreen() {
 
   const { whysByHabit, fetchWhysForHabits } = useWhyStore();
   const { stats, milestones, journal, fetchHabitDetail } = useHabitDetailStore();
-  const { deleteHabit } = useHabitStore();
+  const { deleteHabit, archiveHabit } = useHabitStore();
 
   const whys = whysByHabit[habitId] ?? [];
 
@@ -496,7 +497,21 @@ export default function HabitDetailScreen() {
           <BackIcon color={colors.textSecondary} />
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
-        <TouchableOpacity style={[styles.navBtn, { backgroundColor: colors.surface }]}>
+        <TouchableOpacity
+          style={[styles.navBtn, { backgroundColor: colors.surface }]}
+          onPress={() => router.push({
+            pathname: '/edit-habit',
+            params: {
+              habitId,
+              habitName,
+              habitColor,
+              goalValue: String(goalValue),
+              goalUnit,
+              scheduleType,
+              scheduledDays,
+            },
+          })}
+        >
           <EditIcon color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
@@ -589,6 +604,22 @@ export default function HabitDetailScreen() {
               label="Archive habit"
               sublabel="Preserves all data, frees up a slot"
               icon={<ArchiveIcon color={colors.textSecondary} />}
+              onPress={() => {
+                Alert.alert(
+                  'Archive habit',
+                  `Archive "${habitName}"? All data is preserved and you can reactivate it later.`,
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Archive',
+                      onPress: async () => {
+                        await archiveHabit(habitId);
+                        router.back();
+                      },
+                    },
+                  ]
+                );
+              }}
             />
             <ActionListRow
               label="Delete habit"
