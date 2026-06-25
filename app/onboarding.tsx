@@ -590,6 +590,7 @@ export default function OnboardingScreen() {
       {step === 'welcome' && <StepWelcome onNext={() => setStep('identity')} />}
       {step === 'identity' && (
         <StepIdentity onCreateHabit={async () => {
+          setStep('rhythm');
           await SecureStore.setItemAsync(`onboarding_step_${session?.user.id}`, 'rhythm');
           router.push('/create');
         }} />
