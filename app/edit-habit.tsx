@@ -7,7 +7,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   StyleSheet,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -16,6 +15,7 @@ import { useHabitStore } from '@/stores/habitStore';
 import { ScheduleType, Weekday, GoalUnit } from '@/types';
 import Svg, { Path } from 'react-native-svg';
 import HelpTooltip from '@/components/HelpTooltip';
+import Toast from 'react-native-toast-message';
 
 const DAYS: { key: Weekday; label: string }[] = [
   { key: 'mon', label: 'M' },
@@ -139,7 +139,7 @@ export default function EditHabitScreen() {
     setSaving(false);
 
     if (err) {
-      Alert.alert('Error', err);
+      Toast.show({ type: 'error', text1: 'Couldn\'t save changes', text2: err });
     } else {
       router.dismiss();
       router.replace({

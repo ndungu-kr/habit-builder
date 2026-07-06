@@ -12,6 +12,7 @@ import { useTheme } from '@/providers/ThemeProvider';
 import { useHabitStore } from '@/stores/habitStore';
 import { Habit } from '@/types';
 import { Svg, Path, Rect } from 'react-native-svg';
+import Toast from 'react-native-toast-message';
 
 // ─── Icons ───
 
@@ -172,7 +173,7 @@ export default function HabitsManageScreen() {
           text: 'Archive',
           onPress: async () => {
             const err = await archiveHabit(habit.id);
-            if (err) Alert.alert('Error', err);
+            if (err) Toast.show({ type: 'error', text1: 'Couldn\'t archive', text2: err });
           },
         },
       ]
@@ -189,7 +190,7 @@ export default function HabitsManageScreen() {
           text: 'Reactivate',
           onPress: async () => {
             const err = await reactivateHabit(habit.id);
-            if (err) Alert.alert('Error', err);
+            if (err) Toast.show({ type: 'error', text1: 'Couldn\'t reactivate', text2: err });
           },
         },
       ]

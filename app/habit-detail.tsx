@@ -17,6 +17,7 @@ import { useHabitStore } from '@/stores/habitStore';
 import { IconFlame, IconChevronRight, IconPlus } from '@/components/Icons';
 import { HabitWhy } from '@/types';
 import HelpTooltip from '@/components/HelpTooltip';
+import Toast from 'react-native-toast-message';
 
 // ── Icons ──
 
@@ -519,7 +520,8 @@ export default function HabitDetailScreen() {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
-            await deleteHabit(habitId);
+            const error = await deleteHabit(habitId);
+            if (error) { Toast.show({ type: 'error', text1: 'Couldn\'t delete habit', text2: error }); return; }
             router.back();
           },
         },
@@ -669,7 +671,8 @@ export default function HabitDetailScreen() {
                     {
                       text: 'Archive',
                       onPress: async () => {
-                        await archiveHabit(habitId);
+                        const error = await archiveHabit(habitId);
+                        if (error) { Toast.show({ type: 'error', text1: 'Couldn\'t archive habit', text2: error }); return; }
                         router.back();
                       },
                     },

@@ -16,6 +16,7 @@ import { useHabitStore } from '@/stores/habitStore';
 import { IconCheck, IconPlus } from '@/components/Icons';
 import { ScheduleType, Weekday, GoalUnit } from '@/types';
 import HelpTooltip from '@/components/HelpTooltip';
+import Toast from 'react-native-toast-message';
 
 const TOTAL_STEPS = 6;
 
@@ -704,7 +705,9 @@ export default function CreateHabitScreen() {
       goal_unit: goalUnit,
     });
 
-    if (!result) {
+    if (result) {
+      Toast.show({ type: 'error', text1: 'Couldn\'t create habit', text2: result });
+    } else {
       router.back();
     }
   };
