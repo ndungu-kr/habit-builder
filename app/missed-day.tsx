@@ -11,6 +11,7 @@ import { useTheme } from '@/providers/ThemeProvider';
 import { useStreakStore } from '@/stores/streakStore';
 import { IconFlame, IconSnowflake } from '@/components/Icons';
 import HelpTooltip from '@/components/HelpTooltip';
+import Toast from 'react-native-toast-message';
 
 // Progress dots - no close button, this flow is mandatory
 function MDStepHeader({
@@ -441,12 +442,20 @@ export default function MissedDayScreen() {
   const handleUseFreeze = async () => {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    await useFreeze(yesterday.toISOString().split('T')[0]);
+    const error = await useFreeze(yesterday.toISOString().split('T')[0]);
+    if (error) {
+      Toast.show({ type: 'error', text1: 'Couldn\'t use freeze', text2: error });
+      return;
+    }
     setStage('freeze-used');
   };
 
   const handleLetReset = async () => {
-    await resetStreak();
+    const error = await resetStreak();
+    if (error) {
+      Toast.show({ type: 'error', text1: 'Couldn\'t reset streak', text2: error });
+      return;
+    }
     setStage('reset');
   };
 

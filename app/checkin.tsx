@@ -13,6 +13,7 @@ import { useTheme } from '@/providers/ThemeProvider';
 import { useHabitStore } from '@/stores/habitStore';
 import { useCompletionStore } from '@/stores/completionStore';
 import { useCheckInStore } from '@/stores/checkInStore';
+import Toast from 'react-native-toast-message';
 import { IconFlame } from '@/components/Icons';
 import { Habit, MoodRating, CompletionStatus } from '@/types';
 
@@ -603,9 +604,10 @@ export default function CheckInScreen() {
     }
   };
 
-  const handleSaveReflection = (moodRating: MoodRating, reflection?: string) => {
+  const handleSaveReflection = async (moodRating: MoodRating, reflection?: string) => {
     const habit = todaysHabits[currentIndex];
-    saveCheckIn(habit.id, moodRating, reflection);
+    const error = await saveCheckIn(habit.id, moodRating, reflection);
+    if (error) Toast.show({ type: 'error', text1: 'Couldn\'t save reflection', text2: error });
   };
 
   if (stage === 'landing') {

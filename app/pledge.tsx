@@ -18,6 +18,7 @@ import { IconCheck, IconChevronRight } from '@/components/Icons';
 import { Habit, HabitWhy } from '@/types';
 import { useCompletionStore } from '@/stores/completionStore';
 import { useWhyStore } from '@/stores/whyStore';
+import Toast from 'react-native-toast-message';
 
 // Progress dots - shows which habit you're pledging to
 function PledgeProgress({ current, total }: { current: number; total: number }) {
@@ -417,12 +418,14 @@ export default function PledgeScreen() {
 
   const handlePledgeHabit = async () => {
     if (currentIndex < todaysHabits.length - 1) {
-      // More habits to pledge
       setCurrentIndex(currentIndex + 1);
     } else {
-      // Last habit - create all pledges and show confirmation
       const ids = todaysHabits.map((h) => h.id);
-      await createPledges(ids);
+      const error = await createPledges(ids);
+      if (error) {
+        Toast.show({ type: 'error', text1: 'Couldn\'t save pledge', text2: error });
+        return;
+      }
       setStage('confirmation');
     }
   };

@@ -30,6 +30,7 @@ import {
 import { Habit } from '@/types';
 import { shouldStreakIncrement } from '@/utils/streakCalculator';
 import Svg, { Path } from 'react-native-svg';
+import Toast from 'react-native-toast-message';
 
 // Returns greeting based on time of day
 function getGreeting(): string {
@@ -589,19 +590,27 @@ export default function HomeScreen() {
           variant={getSheetVariant(selectedHabit)}
           onClose={closeSheet}
           onMarkComplete={async () => {
-            await markComplete(selectedHabit.id, selectedHabit.goal_value, selectedHabit.name, selectedHabit.color || '');
+            const error = await markComplete(selectedHabit.id, selectedHabit.goal_value, selectedHabit.name, selectedHabit.color || '');
+            if (error) { Toast.show({ type: 'error', text1: 'Couldn\'t save', text2: error }); return; }
             checkAndUpdateStreak();
           }}
           onMarkPartial={async (value, note) => {
-            await markPartial(selectedHabit.id, value, note, selectedHabit.name, selectedHabit.color || '');
+            const error = await markPartial(selectedHabit.id, value, note, selectedHabit.name, selectedHabit.color || '');
+            if (error) { Toast.show({ type: 'error', text1: 'Couldn\'t save', text2: error }); return; }
             checkAndUpdateStreak();
           }}
           onAddNote={async (note) => {
-            await addNote(selectedHabit.id, note);
+            const error = await addNote(selectedHabit.id, note);
+            if (error) Toast.show({ type: 'error', text1: 'Couldn\'t save note', text2: error });
           }}
-          onSkip={() => { markSkipped(selectedHabit.id); closeSheet(); }}
+          onSkip={async () => {
+            const error = await markSkipped(selectedHabit.id);
+            if (error) { Toast.show({ type: 'error', text1: 'Couldn\'t skip', text2: error }); return; }
+            closeSheet();
+          }}
           onUndo={async () => {
-            await undoCompletion(selectedHabit.id);
+            const error = await undoCompletion(selectedHabit.id);
+            if (error) { Toast.show({ type: 'error', text1: 'Couldn\'t undo', text2: error }); return; }
             fetchStreak();
           }}
           onPledgeFirst={() => { closeSheet(); router.push('/pledge'); }}
