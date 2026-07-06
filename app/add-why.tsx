@@ -9,7 +9,6 @@ import {
   Platform,
   ScrollView,
   Image,
-  Alert,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -36,6 +35,8 @@ export default function AddWhyScreen() {
   const [mode, setMode] = useState<'text' | 'image'>('text');
   const [text, setText] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [imageWidth, setImageWidth] = useState(0);
+  const [imageHeight, setImageHeight] = useState(0);
   const [caption, setCaption] = useState('');
   const [selectedColor, setSelectedColor] = useState(colors.whyCardColors[0]);
   const [saving, setSaving] = useState(false);
@@ -45,11 +46,12 @@ export default function AddWhyScreen() {
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      allowsEditing: true,
       quality: 0.7,
     });
     if (!result.canceled && result.assets[0]) {
       setImageUri(result.assets[0].uri);
+      setImageWidth(result.assets[0].width);
+      setImageHeight(result.assets[0].height);
     }
   };
 
@@ -59,7 +61,7 @@ export default function AddWhyScreen() {
     if (mode === 'text') {
       await addWhy(habitId, text.trim(), selectedColor);
     } else {
-      await addImageWhy(habitId, imageUri!, caption.trim(), selectedColor);
+      await addImageWhy(habitId, imageUri!, caption.trim(), selectedColor, imageWidth, imageHeight);
     }
     router.back();
   };
@@ -142,13 +144,13 @@ export default function AddWhyScreen() {
                 placeholder="e.g. To be calmer and more present for the people I love."
                 placeholderTextColor={colors.textTertiary}
                 multiline
-                maxLength={200}
+                maxLength={500}
                 value={text}
                 onChangeText={setText}
                 autoFocus
               />
               <Text style={[styles.charCount, { color: colors.textTertiary }]}>
-                {text.length}/200
+                {text.length}/500
               </Text>
             </View>
           </>
@@ -163,7 +165,7 @@ export default function AddWhyScreen() {
               {imageUri ? (
                 <Image
                   source={{ uri: imageUri }}
-                  style={styles.imagePreview}
+                  style={[styles.imagePreview, { aspectRatio: 3 / 4 }]}
                   resizeMode="cover"
                 />
               ) : (
@@ -210,7 +212,9 @@ export default function AddWhyScreen() {
           </>
         )}
 
-        {/* Color picker */}
+        {/* Color picker - text whys only */}
+        {mode === 'text' && (
+          <>
         <Text style={[styles.colorLabel, { color: colors.textSecondary }]}>
           Card color
         </Text>
@@ -228,6 +232,8 @@ export default function AddWhyScreen() {
             />
           ))}
         </View>
+          </>
+        )}
       </ScrollView>
 
       {/* Save button */}
@@ -382,7 +388,6 @@ const styles = StyleSheet.create({
   },
   imagePreview: {
     width: '100%',
-    height: 300,
   },
   imagePickerPlaceholder: {
     alignItems: 'center',

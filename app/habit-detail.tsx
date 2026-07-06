@@ -157,57 +157,60 @@ const heroStyles = StyleSheet.create({
 
 // ── Why Card ──
 
-function WhyCard({ why, featured }: { why: HabitWhy; featured: boolean }) {
+function WhyCard({ why, featured, habitId }: { why: HabitWhy; featured: boolean; habitId: string }) {
+  const router = useRouter();
+
+  const handlePress = () => {
+    router.push({
+      pathname: '/why-detail',
+      params: {
+        whyId: why.id,
+        habitId,
+        type: why.type,
+        textContent: why.text_content || '',
+        imageUrl: why.image_url || '',
+        caption: why.caption || '',
+        color: why.color,
+        aspectRatio: String(why.image_aspect_ratio || 0.75),
+      },
+    });
+  };
+
   if (why.type === 'image' && why.image_url) {
     return (
-      <View style={[whyStyles.card, { backgroundColor: why.color, padding: 0 }]}>
-        {featured && (
-          <View style={[whyStyles.starBadge, { zIndex: 2 }]}>
-            <StarIcon />
-          </View>
-        )}
-        <Image
-          source={{ uri: why.image_url }}
-          style={{ width: '100%', height: '100%', borderRadius: 16 }}
-          resizeMode="cover"
-        />
-        {why.caption ? (
-          <View style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            bottom: 0,
-            paddingTop: 40,
-            paddingBottom: 14,
-            paddingHorizontal: 14,
-            backgroundColor: 'rgba(0,0,0,0.45)',
-            borderBottomLeftRadius: 16,
-            borderBottomRightRadius: 16,
-          }}>
-            <Text style={{
-              fontFamily: 'Nunito_600SemiBold',
-              fontSize: 13,
-              color: '#fff',
-              lineHeight: 18,
-            }}>
-              {why.caption}
-            </Text>
-          </View>
-        ) : null}
-      </View>
+      <TouchableOpacity onPress={handlePress} activeOpacity={0.8}>
+        <View style={[whyStyles.card, { backgroundColor: why.color, padding: 0, paddingHorizontal: 0, minHeight: 0 }]}>
+          {featured && (
+            <View style={[whyStyles.starBadge, { zIndex: 2 }]}>
+              <StarIcon />
+            </View>
+          )}
+          <Image
+            source={{ uri: why.image_url }}
+            style={{
+              width: '100%',
+              aspectRatio: why.image_aspect_ratio || 3 / 4,
+              borderRadius: 16,
+            }}
+            resizeMode="cover"
+          />
+        </View>
+      </TouchableOpacity>
     );
   }
 
   return (
-    <View style={[whyStyles.card, { backgroundColor: why.color }]}>
-      {featured && (
-        <View style={whyStyles.starBadge}>
-          <StarIcon />
-        </View>
-      )}
-      <Text style={whyStyles.quote}>"</Text>
-      <Text style={whyStyles.text}>{why.text_content}</Text>
-    </View>
+    <TouchableOpacity onPress={handlePress} activeOpacity={0.8}>
+      <View style={[whyStyles.card, { backgroundColor: why.color }]}>
+        {featured && (
+          <View style={whyStyles.starBadge}>
+            <StarIcon />
+          </View>
+        )}
+        <Text style={whyStyles.quote}>"</Text>
+        <Text style={whyStyles.text}>{why.text_content}</Text>
+      </View>
+    </TouchableOpacity>
   );
 }
 
@@ -230,7 +233,7 @@ function AddWhyCard({ onPress }: { onPress: () => void }) {
 const whyStyles = StyleSheet.create({
   card: {
     borderRadius: 16, padding: 20, paddingHorizontal: 16,
-    height: 168, justifyContent: 'center', overflow: 'hidden',
+    minHeight: 140, justifyContent: 'center', overflow: 'hidden',
   },
   starBadge: {
     position: 'absolute', top: 10, right: 10,
@@ -579,13 +582,9 @@ export default function HabitDetailScreen() {
           <SectionHeader label={`Your whys \u00B7 ${whys.length}`} />
           <View style={styles.whyGrid}>
             {whys.map((w) => (
-              <View key={w.id} style={styles.whyCell}>
-                <WhyCard why={w} featured={w.is_featured} />
-              </View>
+              <WhyCard key={w.id} why={w} featured={w.is_featured} habitId={habitId} />
             ))}
-            <View style={styles.whyCell}>
-              <AddWhyCard onPress={handleAddWhy} />
-            </View>
+            <AddWhyCard onPress={handleAddWhy} />
           </View>
         </View>
 
@@ -705,10 +704,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: { paddingBottom: 60 },
   whyGrid: {
-    flexDirection: 'row', flexWrap: 'wrap',
     paddingHorizontal: 24, paddingTop: 12, gap: 12,
   },
-  whyCell: { width: '47%' },
   statsGrid: {
     flexDirection: 'row', gap: 10,
     paddingHorizontal: 24, paddingTop: 12,

@@ -519,6 +519,7 @@ function StepFirstWhy({
             placeholderTextColor="rgba(255,255,255,0.5)"
             multiline
             textAlign="center"
+            maxLength={500}
           />
         </View>
         <View style={styles.whyMeta}>

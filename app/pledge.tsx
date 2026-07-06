@@ -5,6 +5,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  ScrollView,
+  Dimensions,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/providers/ThemeProvider';
@@ -174,23 +178,65 @@ function PledgeHabit({
 }) {
   const { colors } = useTheme();
   const router = useRouter();
+  const [activeWhyIndex, setActiveWhyIndex] = useState(0);
+  const cardWidth = Dimensions.get('window').width - 48;
 
-  // Pick the featured why, or the first one, or null
-  const displayWhy = whys.find((w) => w.is_featured) ?? whys[0] ?? null;
-
-  // Pick a random color for the placeholder
   const [placeholderColor] = useState(
     () => colors.whyCardColors[Math.floor(Math.random() * colors.whyCardColors.length)]
   );
 
   const handleWhyCardPress = () => {
-    if (!displayWhy) {
-      // No whys yet - navigate to add one
+    if (whys.length === 0) {
       router.push({
         pathname: '/add-why',
         params: { habitId: habit.id, habitName: habit.name },
       });
     }
+  };
+
+  const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const index = Math.round(e.nativeEvent.contentOffset.x / cardWidth);
+    setActiveWhyIndex(index);
+  };
+
+  const renderWhyCard = (why: HabitWhy, index: number) => {
+    const isLast = index === whys.length - 1;
+    const gap = isLast ? 0 : 12;
+
+    if (why.type === 'image' && why.image_url) {
+      const imgRatio = why.image_aspect_ratio || 3 / 4;
+      return (
+        <View
+          key={why.id}
+          style={{
+            width: cardWidth,
+            marginRight: gap,
+            borderRadius: 20,
+            overflow: 'hidden',
+            alignSelf: 'center',
+          }}
+        >
+          <Image
+            source={{ uri: why.image_url }}
+            style={{ width: '100%', aspectRatio: imgRatio, borderRadius: 20 }}
+            resizeMode="cover"
+          />
+        </View>
+      );
+    }
+    const textLen = (why.text_content || '').length;
+    const fontSize = textLen > 350 ? 16 : textLen > 200 ? 18 : textLen > 100 ? 20 : 22;
+    const lineHeight = Math.round(fontSize * 1.45);
+
+    return (
+      <View
+        key={why.id}
+        style={[styles.whyCard, { width: cardWidth, backgroundColor: why.color, marginRight: gap }]}
+      >
+        <Text style={styles.whyQuote}>"</Text>
+        <Text style={[styles.whyCardText, { fontSize, lineHeight }]}>{why.text_content}</Text>
+      </View>
+    );
   };
 
   return (
@@ -208,57 +254,53 @@ function PledgeHabit({
         </Text>
       </View>
 
-      {/* Why card */}
-      <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 28 }}>
-        <TouchableOpacity
-          style={[
-            styles.whyCard,
-            { backgroundColor: displayWhy ? displayWhy.color : placeholderColor },
-            displayWhy?.type === 'image' && { padding: 0 },
-          ]}
-          onPress={handleWhyCardPress}
-          activeOpacity={displayWhy ? 1 : 0.7}
-        >
-          {displayWhy?.type === 'image' && displayWhy.image_url ? (
-            <>
-              <Image
-                source={{ uri: displayWhy.image_url }}
-                style={{ width: '100%', height: '100%', borderRadius: 20 }}
-                resizeMode="cover"
-              />
-              {displayWhy.caption ? (
-                <View style={{
-                  position: 'absolute',
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  paddingTop: 50,
-                  paddingBottom: 22,
-                  paddingHorizontal: 24,
-                  backgroundColor: 'rgba(0,0,0,0.45)',
-                  borderBottomLeftRadius: 20,
-                  borderBottomRightRadius: 20,
-                }}>
-                  <Text style={{
-                    fontFamily: 'Nunito_600SemiBold',
-                    fontSize: 17,
-                    color: '#fff',
-                    lineHeight: 23,
-                  }}>
-                    {displayWhy.caption}
-                  </Text>
-                </View>
-              ) : null}
-            </>
-          ) : (
-            <>
+      {/* Why cards */}
+      <View style={{ flex: 1, paddingTop: 28 }}>
+        {whys.length === 0 ? (
+          <View style={{ paddingHorizontal: 24, flex: 1 }}>
+            <TouchableOpacity
+              style={[styles.whyCard, { backgroundColor: placeholderColor }]}
+              onPress={handleWhyCardPress}
+              activeOpacity={0.7}
+            >
               <Text style={styles.whyQuote}>"</Text>
-              <Text style={styles.whyCardText}>
-                {displayWhy ? displayWhy.text_content : 'Tap to add your first why'}
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
+              <Text style={styles.whyCardText}>Tap to add your first why</Text>
+            </TouchableOpacity>
+          </View>
+        ) : whys.length === 1 ? (
+          <View style={{ paddingHorizontal: 24, flex: 1 }}>
+            {renderWhyCard(whys[0], 0)}
+          </View>
+        ) : (
+          <>
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={handleScroll}
+              contentContainerStyle={{ paddingHorizontal: 24 }}
+              snapToInterval={cardWidth + 12}
+              decelerationRate="fast"
+            >
+              {whys.map((why, i) => renderWhyCard(why, i))}
+            </ScrollView>
+            {/* Pagination dots */}
+            <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 14 }}>
+              {whys.map((why, i) => (
+                <View
+                  key={why.id}
+                  style={{
+                    width: i === activeWhyIndex ? 18 : 6,
+                    height: 6,
+                    borderRadius: 999,
+                    backgroundColor: colors.accent,
+                    opacity: i === activeWhyIndex ? 1 : 0.3,
+                  }}
+                />
+              ))}
+            </View>
+          </>
+        )}
       </View>
 
       {/* Pledge statement */}
@@ -576,7 +618,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 36,
     paddingHorizontal: 28,
-    minHeight: 280,
     justifyContent: 'center',
     overflow: 'hidden',
   },

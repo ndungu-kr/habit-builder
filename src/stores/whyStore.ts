@@ -2,13 +2,15 @@ import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import { HabitWhy } from '@/types';
 import { File } from 'expo-file-system/next';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 interface WhyState {
   whysByHabit: Record<string, HabitWhy[]>;
   isLoading: boolean;
   fetchWhysForHabits: (habitIds: string[]) => Promise<void>;
   addWhy: (habitId: string, textContent: string, color: string) => Promise<void>;
-  addImageWhy: (habitId: string, imageUri: string, caption: string, color: string) => Promise<void>;
-  deleteWhy: (whyId: string, habitId: string) => Promise<void>;  
+  addImageWhy: (habitId: string, imageUri: string, caption: string, color: string, width: number, height: number) => Promise<void>;
+  updateWhy: (whyId: string, habitId: string, updates: { text_content?: string; caption?: string | null; color?: string }) => Promise<void>;  
+  deleteWhy: (whyId: string, habitId: string) => Promise<void>;
   toggleFeatured: (whyId: string, habitId: string) => Promise<void>;
 }
 
@@ -65,15 +67,27 @@ export const useWhyStore = create<WhyState>((set, get) => ({
     }
   },
 
-    addImageWhy: async (habitId, imageUri, caption, color) => {
+    addImageWhy: async (habitId, imageUri, caption, color, width, height) => {
     const { whysByHabit } = get();
     const existing = whysByHabit[habitId] ?? [];
     const sortOrder = existing.length;
     const isFeatured = existing.length === 0;
 
     // Upload image to Supabase Storage
+    // Resize to max 900px on longest side
+    const maxDim = 900;
+    const resizeOp = width > height
+      ? { width: Math.min(width, maxDim) }
+      : { height: Math.min(height, maxDim) };
+
+    const manipulated = await manipulateAsync(
+      imageUri,
+      [{ resize: resizeOp }],
+      { compress: 0.6, format: SaveFormat.JPEG }
+    );
+
     const fileName = `${habitId}/${Date.now()}.jpg`;
-    const file = new File(imageUri);
+    const file = new File(manipulated.uri);
     const base64 = await file.base64();
     const binaryString = atob(base64);
     const bytes = new Uint8Array(binaryString.length);
@@ -93,6 +107,8 @@ export const useWhyStore = create<WhyState>((set, get) => ({
       .from('why-images')
       .getPublicUrl(fileName);
 
+    const aspectRatio = width / height;
+
     const { data } = await supabase
       .from('habit_whys')
       .insert({
@@ -101,6 +117,7 @@ export const useWhyStore = create<WhyState>((set, get) => ({
         text_content: null,
         image_url: urlData.publicUrl,
         caption: caption || null,
+        image_aspect_ratio: aspectRatio,
         color,
         sort_order: sortOrder,
         is_featured: isFeatured,
@@ -116,6 +133,24 @@ export const useWhyStore = create<WhyState>((set, get) => ({
         },
       });
     }
+  },
+
+  updateWhy: async (whyId, habitId, updates) => {
+    await supabase
+      .from('habit_whys')
+      .update(updates)
+      .eq('id', whyId);
+
+    const { whysByHabit } = get();
+    const updated = (whysByHabit[habitId] ?? []).map((w) =>
+      w.id === whyId ? { ...w, ...updates } : w
+    );
+    set({
+      whysByHabit: {
+        ...whysByHabit,
+        [habitId]: updated,
+      },
+    });
   },
 
   deleteWhy: async (whyId, habitId) => {

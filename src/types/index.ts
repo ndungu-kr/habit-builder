@@ -1,5 +1,5 @@
 export type ScheduleType = 'everyday' | 'specific_days';
-export type WhyType = 'text' | 'image' | 'both';
+export type WhyType = 'text' | 'image';
 export type CompletionStatus = 'completed' | 'partial' | 'skipped' | 'missed';
 export type MoodRating = 1 | 2 | 3 | 4;
 export type ThemeMode = 'light' | 'dark' | 'system';
@@ -48,6 +48,7 @@ export interface HabitWhy {
   text_content: string | null;
   image_url: string | null;
   caption: string | null;
+  image_aspect_ratio: number | null;
   is_featured: boolean;
   color: string;
   sort_order: number;

@@ -8,8 +8,6 @@ import {
   Alert,
   Modal,
   Pressable,
-  StyleSheet,
-  Platform,
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTheme } from '@/providers/ThemeProvider';
@@ -84,15 +82,6 @@ function TrophyIcon({ color }: { color: string }) {
         strokeLinejoin="round"
       />
       <Path d="M9 19h6M12 14v5" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-function UserIcon({ color }: { color: string }) {
-  return (
-    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Circle cx={12} cy={8} r={4} stroke={color} strokeWidth={1.8} />
-      <Path d="M4 20a8 8 0 0 1 16 0" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
     </Svg>
   );
 }
