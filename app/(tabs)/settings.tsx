@@ -661,9 +661,13 @@ export default function SettingsScreen() {
         </View>
 
         {/* Profile card */}
-        <View style={{ paddingTop: 6 }}>
+        <TouchableOpacity
+          style={{ paddingTop: 6 }}
+          activeOpacity={0.7}
+          onPress={() => router.push('/edit-profile')}
+        >
           <ProfileCard colors={colors} />
-        </View>
+        </TouchableOpacity>
 
         {/* Notifications */}
         <View style={{ paddingTop: 28 }}>
