@@ -10,11 +10,11 @@ interface CompletionState {
   isLoading: boolean;
   pendingNotes: Record<string, string>;
   fetchTodaysCompletions: () => Promise<void>;
-  markComplete: (habitId: string, value: number, habitName?: string, habitColor?: string) => Promise<void>;
-  markPartial: (habitId: string, value: number, note?: string, habitName?: string, habitColor?: string) => Promise<void>;
-  markSkipped: (habitId: string) => Promise<void>;
-  undoCompletion: (habitId: string) => Promise<void>;
-  addNote: (habitId: string, note: string) => Promise<void>;
+  markComplete: (habitId: string, value: number, habitName?: string, habitColor?: string) => Promise<string | null>;
+  markPartial: (habitId: string, value: number, note?: string, habitName?: string, habitColor?: string) => Promise<string | null>;
+  markSkipped: (habitId: string) => Promise<string | null>;
+  undoCompletion: (habitId: string) => Promise<string | null>;
+  addNote: (habitId: string, note: string) => Promise<string | null>;
   timesShownUp: Record<string, number>;
   fetchTimesShownUp: (habitIds: string[]) => Promise<void>;
 }
@@ -67,79 +67,106 @@ export const useCompletionStore = create<CompletionState>((set, get) => ({
   },
 
   // Upsert a completion row for today
-    markComplete: async (habitId, value, habitName, habitColor) => {
-    const date = todayStr();
-    // Attach any pending note from "Add a note" before completing
-    const pendingNote = get().pendingNotes[habitId];
-    await supabase
-      .from('completions')
-      .upsert(
-        { habit_id: habitId, date, status: 'completed', actual_value: value, note: pendingNote || null },
-        { onConflict: 'habit_id,date' }
-      );
-    // Clear pending note after saving
-    if (pendingNote) {
-      const { [habitId]: _, ...rest } = get().pendingNotes;
-      set({ pendingNotes: rest });
+  markComplete: async (habitId, value, habitName, habitColor) => {
+    try {
+      const date = todayStr();
+      const pendingNote = get().pendingNotes[habitId];
+      const { error } = await supabase
+        .from('completions')
+        .upsert(
+          { habit_id: habitId, date, status: 'completed', actual_value: value, note: pendingNote || null },
+          { onConflict: 'habit_id,date' }
+        );
+      if (error) return error.message;
+
+      if (pendingNote) {
+        const { [habitId]: _, ...rest } = get().pendingNotes;
+        set({ pendingNotes: rest });
+      }
+      get().fetchTodaysCompletions();
+      checkHabitMilestone(habitId, habitName || '', habitColor || '');
+      return null;
+    } catch (e: any) {
+      return e.message || 'Failed to mark complete';
     }
-    get().fetchTodaysCompletions();
-    checkHabitMilestone(habitId, habitName || '', habitColor || '');
   },
 
-    markPartial: async (habitId, value, note, habitName, habitColor) => {
-    const date = todayStr();
-    // Use provided note, or fall back to any pending note
-    const finalNote = note || get().pendingNotes[habitId] || null;
-    await supabase
-      .from('completions')
-      .upsert(
-        { habit_id: habitId, date, status: 'partial', actual_value: value, note: finalNote },
-        { onConflict: 'habit_id,date' }
-      );
-    if (get().pendingNotes[habitId]) {
-      const { [habitId]: _, ...rest } = get().pendingNotes;
-      set({ pendingNotes: rest });
+  markPartial: async (habitId, value, note, habitName, habitColor) => {
+    try {
+      const date = todayStr();
+      const finalNote = note || get().pendingNotes[habitId] || null;
+      const { error } = await supabase
+        .from('completions')
+        .upsert(
+          { habit_id: habitId, date, status: 'partial', actual_value: value, note: finalNote },
+          { onConflict: 'habit_id,date' }
+        );
+      if (error) return error.message;
+
+      if (get().pendingNotes[habitId]) {
+        const { [habitId]: _, ...rest } = get().pendingNotes;
+        set({ pendingNotes: rest });
+      }
+      get().fetchTodaysCompletions();
+      checkHabitMilestone(habitId, habitName || '', habitColor || '');
+      return null;
+    } catch (e: any) {
+      return e.message || 'Failed to mark partial';
     }
-    get().fetchTodaysCompletions();
-    checkHabitMilestone(habitId, habitName || '', habitColor || '');
   },
 
   markSkipped: async (habitId) => {
-    const date = todayStr();
-    await supabase
-      .from('completions')
-      .upsert(
-        { habit_id: habitId, date, status: 'skipped', actual_value: 0 },
-        { onConflict: 'habit_id,date' }
-      );
-    get().fetchTodaysCompletions();
+    try {
+      const date = todayStr();
+      const { error } = await supabase
+        .from('completions')
+        .upsert(
+          { habit_id: habitId, date, status: 'skipped', actual_value: 0 },
+          { onConflict: 'habit_id,date' }
+        );
+      if (error) return error.message;
+      get().fetchTodaysCompletions();
+      return null;
+    } catch (e: any) {
+      return e.message || 'Failed to mark skipped';
+    }
   },
 
   undoCompletion: async (habitId) => {
-    const date = todayStr();
-    await supabase
-      .from('completions')
-      .delete()
-      .eq('habit_id', habitId)
-      .eq('date', date);
-    get().fetchTodaysCompletions();
+    try {
+      const date = todayStr();
+      const { error } = await supabase
+        .from('completions')
+        .delete()
+        .eq('habit_id', habitId)
+        .eq('date', date);
+      if (error) return error.message;
+      get().fetchTodaysCompletions();
+      return null;
+    } catch (e: any) {
+      return e.message || 'Failed to undo';
+    }
   },
 
   addNote: async (habitId, note) => {
-    const date = todayStr();
-    const existing = get().todaysCompletions.find((c) => c.habit_id === habitId);
+    try {
+      const date = todayStr();
+      const existing = get().todaysCompletions.find((c) => c.habit_id === habitId);
 
-    if (existing) {
-      // Completion record exists - update note directly
-      await supabase
-        .from('completions')
-        .update({ note })
-        .eq('habit_id', habitId)
-        .eq('date', date);
-      get().fetchTodaysCompletions();
-    } else {
-      // No completion yet - store pending note for when they complete
-      set({ pendingNotes: { ...get().pendingNotes, [habitId]: note } });
+      if (existing) {
+        const { error } = await supabase
+          .from('completions')
+          .update({ note })
+          .eq('habit_id', habitId)
+          .eq('date', date);
+        if (error) return error.message;
+        get().fetchTodaysCompletions();
+      } else {
+        set({ pendingNotes: { ...get().pendingNotes, [habitId]: note } });
+      }
+      return null;
+    } catch (e: any) {
+      return e.message || 'Failed to save note';
     }
   },
 

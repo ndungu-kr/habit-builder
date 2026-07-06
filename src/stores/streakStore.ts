@@ -31,9 +31,9 @@ interface StreakState {
   missedDayInfo: MissedDayInfo | null;
   pendingMilestone: PendingMilestone | null;
   fetchStreak: () => Promise<void>;
-  incrementStreak: () => Promise<void>;
-  useFreeze: (dateFrozen: string) => Promise<void>;
-  resetStreak: () => Promise<void>;
+  incrementStreak: () => Promise<string | null>;
+  useFreeze: (dateFrozen: string) => Promise<string | null>;
+  resetStreak: () => Promise<string | null>;
   checkYesterdayMissed: (habits: Habit[]) => Promise<boolean>;
   clearMissedDay: () => void;
   setPendingMilestone: (m: PendingMilestone | null) => void;
@@ -81,100 +81,114 @@ export const useStreakStore = create<StreakState>((set, get) => ({
 
   // Call when all scheduled habits are engaged for today
   incrementStreak: async () => {
-    const { streak } = get();
-    if (!streak) return;
+    try {
+      const { streak } = get();
+      if (!streak) return null;
 
-    const newStreak = streak.current_streak + 1;
-    const newLongest = Math.max(streak.longest_streak, newStreak);
+      const newStreak = streak.current_streak + 1;
+      const newLongest = Math.max(streak.longest_streak, newStreak);
 
-    // Check if a new freeze was earned at this streak value
-    let newFreezes = streak.freezes_available;
-    let newFreezesEarned = streak.freezes_earned_total;
-    if (didEarnFreeze(newStreak) && newFreezes < 3) {
-      newFreezes += 1;
-      newFreezesEarned += 1;
-    }
+      let newFreezes = streak.freezes_available;
+      let newFreezesEarned = streak.freezes_earned_total;
+      if (didEarnFreeze(newStreak) && newFreezes < 3) {
+        newFreezes += 1;
+        newFreezesEarned += 1;
+      }
 
-    const { data } = await supabase
-      .from('unified_streaks')
-      .update({
-        current_streak: newStreak,
-        longest_streak: newLongest,
-        freezes_available: newFreezes,
-        freezes_earned_total: newFreezesEarned,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('user_id', streak.user_id)
-      .select()
-      .single();
+      const { data, error } = await supabase
+        .from('unified_streaks')
+        .update({
+          current_streak: newStreak,
+          longest_streak: newLongest,
+          freezes_available: newFreezes,
+          freezes_earned_total: newFreezesEarned,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', streak.user_id)
+        .select()
+        .single();
 
-    if (data) set({ streak: data });
+      if (error) return error.message;
+      if (data) set({ streak: data });
 
-    // Check for streak milestone
-    const milestone = getMilestoneReached(newStreak);
-    if (milestone) {
-      await supabase
-        .from('streak_milestones')
-        .upsert(
-          { user_id: streak.user_id, streak_count: milestone },
-          { onConflict: 'user_id,streak_count' }
-        );
-      // Signal the UI to show celebration
-      set({
-        pendingMilestone: {
-          type: 'streak',
-          count: milestone,
-          freezeEarned: didEarnFreeze(newStreak) && streak.freezes_available < 3,
-          freezeCount: newFreezes,
-        },
-      });
-      sendMilestoneNotification('', milestone, 'streak');
+      const milestone = getMilestoneReached(newStreak);
+      if (milestone) {
+        await supabase
+          .from('streak_milestones')
+          .upsert(
+            { user_id: streak.user_id, streak_count: milestone },
+            { onConflict: 'user_id,streak_count' }
+          );
+        set({
+          pendingMilestone: {
+            type: 'streak',
+            count: milestone,
+            freezeEarned: didEarnFreeze(newStreak) && streak.freezes_available < 3,
+            freezeCount: newFreezes,
+          },
+        });
+        sendMilestoneNotification('', milestone, 'streak');
+      }
+      return null;
+    } catch (e: any) {
+      return e.message || 'Failed to update streak';
     }
   },
 
   // Protect streak with a freeze
   useFreeze: async (dateFrozen) => {
-    const { streak } = get();
-    if (!streak || streak.freezes_available <= 0) return;
+    try {
+      const { streak } = get();
+      if (!streak || streak.freezes_available <= 0) return null;
 
-    // Record the freeze event
-    await supabase.from('freeze_events').insert({
-      user_id: streak.user_id,
-      date_frozen: dateFrozen,
-      streak_at_time: streak.current_streak,
-    });
+      const { error: insertError } = await supabase.from('freeze_events').insert({
+        user_id: streak.user_id,
+        date_frozen: dateFrozen,
+        streak_at_time: streak.current_streak,
+      });
+      if (insertError) return insertError.message;
 
-    // Update streak - freeze holds value, decrements available
-    const { data } = await supabase
-      .from('unified_streaks')
-      .update({
-        freezes_available: streak.freezes_available - 1,
-        freezes_used_total: streak.freezes_used_total + 1,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('user_id', streak.user_id)
-      .select()
-      .single();
+      const { data, error } = await supabase
+        .from('unified_streaks')
+        .update({
+          freezes_available: streak.freezes_available - 1,
+          freezes_used_total: streak.freezes_used_total + 1,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', streak.user_id)
+        .select()
+        .single();
 
-    if (data) set({ streak: data });
+      if (error) return error.message;
+      if (data) set({ streak: data });
+      return null;
+    } catch (e: any) {
+      return e.message || 'Failed to use freeze';
+    }
   },
 
   // Let the streak reset to 0
   resetStreak: async () => {
-    const { streak } = get();
-    if (!streak) return;
+    try {
+      const { streak } = get();
+      if (!streak) return null;
 
-    const { data } = await supabase
-      .from('unified_streaks')
-      .update({
-        current_streak: 0,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('user_id', streak.user_id)
-      .select()
-      .single();
+      const { data, error } = await supabase
+        .from('unified_streaks')
+        .update({
+          current_streak: 0,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', streak.user_id)
+        .select()
+        .single();
 
-    if (data) set({ streak: data });
+      if (error) return error.message;
+      if (data) set({ streak: data });
+      return null;
+    } catch (e: any) {
+      return e.message || 'Failed to reset streak';
+    }
   },
 
   // Check if yesterday had any missed/skipped habits

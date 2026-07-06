@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useProfileStore } from '@/stores/profileStore';
+import Toast from 'react-native-toast-message';
 import { useAuthStore } from '@/stores/authStore';
 
 function BackIcon({ color }: { color: string }) {
@@ -46,8 +47,13 @@ export default function EditProfileScreen() {
   const handleSave = async () => {
     if (!hasChanges || saving) return;
     setSaving(true);
-    await updateProfile({ name: name.trim() });
-    setSaving(false);
+    const error = await updateProfile({ name: name.trim() });
+    if (error) {
+      Toast.show({ type: 'error', text1: 'Couldn\'t update profile', text2: error });
+      setSaving(false);
+      return;
+    }
+    Toast.show({ type: 'success', text1: 'Profile updated' });
     router.back();
   };
 

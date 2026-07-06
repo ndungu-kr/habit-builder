@@ -47,18 +47,21 @@ export const usePledgeStore = create<PledgeState>((set, get) => ({
   },
 
   createPledges: async (habitIds) => {
-    const today = getTodayDate();
+    try {
+      const today = getTodayDate();
 
-    const rows = habitIds.map((habitId) => ({
-      habit_id: habitId,
-      date: today,
-    }));
+      const rows = habitIds.map((habitId) => ({
+        habit_id: habitId,
+        date: today,
+      }));
 
-    const { error } = await supabase.from('pledges').insert(rows);
+      const { error } = await supabase.from('pledges').insert(rows);
+      if (error) return error.message;
 
-    if (error) return error.message;
-
-    await get().fetchTodaysPledges();
-    return null;
+      await get().fetchTodaysPledges();
+      return null;
+    } catch (e: any) {
+      return e.message || 'Failed to create pledges';
+    }
   },
 }));

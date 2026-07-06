@@ -14,6 +14,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useWhyStore } from '@/stores/whyStore';
+import Toast from 'react-native-toast-message';
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
 
 function CloseIcon({ color }: { color: string }) {
@@ -58,10 +59,14 @@ export default function AddWhyScreen() {
   const handleSave = async () => {
     if (!canSave || saving) return;
     setSaving(true);
-    if (mode === 'text') {
-      await addWhy(habitId, text.trim(), selectedColor);
-    } else {
-      await addImageWhy(habitId, imageUri!, caption.trim(), selectedColor, imageWidth, imageHeight);
+    const error = mode === 'text'
+      ? await addWhy(habitId, text.trim(), selectedColor)
+      : await addImageWhy(habitId, imageUri!, caption.trim(), selectedColor, imageWidth, imageHeight);
+
+    if (error) {
+      Toast.show({ type: 'error', text1: 'Couldn\'t save why', text2: error });
+      setSaving(false);
+      return;
     }
     router.back();
   };

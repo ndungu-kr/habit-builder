@@ -14,6 +14,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useWhyStore } from '@/stores/whyStore';
+import Toast from 'react-native-toast-message';
 import Svg, { Path } from 'react-native-svg';
 
 function CloseIcon({ color }: { color: string }) {
@@ -67,10 +68,15 @@ export default function WhyDetailScreen() {
   const handleSave = async () => {
     if (saving) return;
     setSaving(true);
-    if (type === 'text') {
-      await updateWhy(whyId, habitId, { text_content: text.trim(), color: selectedColor });
-    } else {
-      await updateWhy(whyId, habitId, { caption: caption.trim() || null, color: selectedColor });
+    const updates = type === 'text'
+      ? { text_content: text.trim(), color: selectedColor }
+      : { caption: caption.trim() || null, color: selectedColor };
+
+    const error = await updateWhy(whyId, habitId, updates);
+    if (error) {
+      Toast.show({ type: 'error', text1: 'Couldn\'t save changes', text2: error });
+      setSaving(false);
+      return;
     }
     router.back();
   };
@@ -85,7 +91,11 @@ export default function WhyDetailScreen() {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
-            await deleteWhy(whyId, habitId);
+            const error = await deleteWhy(whyId, habitId);
+            if (error) {
+              Toast.show({ type: 'error', text1: 'Couldn\'t delete why', text2: error });
+              return;
+            }
             router.back();
           },
         },

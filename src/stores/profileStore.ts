@@ -6,7 +6,7 @@ interface ProfileState {
   profile: Profile | null;
   isLoading: boolean;
   fetchProfile: () => Promise<void>;
-  updateProfile: (updates: Partial<Profile>) => Promise<void>;
+  updateProfile: (updates: Partial<Profile>) => Promise<string | null>;
 }
 
 export const useProfileStore = create<ProfileState>((set, get) => ({
@@ -29,15 +29,21 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
   updateProfile: async (updates) => {
     const { profile } = get();
-    if (!profile) return;
+    if (!profile) return 'No profile loaded';
 
-    const { data } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', profile.id)
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', profile.id)
+        .select()
+        .single();
 
-    if (data) set({ profile: data });
+      if (error) return error.message;
+      if (data) set({ profile: data });
+      return null;
+    } catch (e: any) {
+      return e.message || 'Failed to update profile';
+    }
   },
 }));

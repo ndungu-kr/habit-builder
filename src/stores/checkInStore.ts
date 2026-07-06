@@ -7,7 +7,7 @@ interface CheckInState {
   hasCheckedInToday: boolean;
   isLoading: boolean;
   fetchTodaysCheckIns: () => Promise<void>;
-  saveCheckIn: (habitId: string, moodRating: MoodRating, reflectionText?: string) => Promise<void>;
+  saveCheckIn: (habitId: string, moodRating: MoodRating, reflectionText?: string) => Promise<string | null>;
 }
 
 function todayStr(): string {
@@ -34,18 +34,24 @@ export const useCheckInStore = create<CheckInState>((set, get) => ({
   },
 
   saveCheckIn: async (habitId, moodRating, reflectionText) => {
-    const date = todayStr();
-    await supabase
-      .from('check_ins')
-      .upsert(
-        {
-          habit_id: habitId,
-          date,
-          mood_rating: moodRating,
-          reflection_text: reflectionText || null,
-        },
-        { onConflict: 'habit_id,date' }
-      );
-    get().fetchTodaysCheckIns();
+    try {
+      const date = todayStr();
+      const { error } = await supabase
+        .from('check_ins')
+        .upsert(
+          {
+            habit_id: habitId,
+            date,
+            mood_rating: moodRating,
+            reflection_text: reflectionText || null,
+          },
+          { onConflict: 'habit_id,date' }
+        );
+      if (error) return error.message;
+      get().fetchTodaysCheckIns();
+      return null;
+    } catch (e: any) {
+      return e.message || 'Failed to save check-in';
+    }
   },
 }));
