@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import FadeInView from '@/components/FadeInView';
+import AnimatedPressable from '@/components/AnimatedPressable';
 import {
   View,
   Text,
@@ -65,13 +67,13 @@ function CIPrimaryCTA({ label, onPress }: { label: string; onPress: () => void }
   const { colors } = useTheme();
 
   return (
-    <TouchableOpacity
+    <AnimatedPressable
+      scaleValue={0.96}
       style={[styles.primaryCta, { backgroundColor: colors.accent }]}
       onPress={onPress}
-      activeOpacity={0.85}
     >
       <Text style={styles.primaryCtaText}>{label}</Text>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 
@@ -177,8 +179,9 @@ function MoodSelector({
       {MOODS.map((m) => {
         const isSelected = m.key === selected;
         return (
-          <TouchableOpacity
+          <AnimatedPressable
             key={m.key}
+            scaleValue={0.92}
             style={[
               styles.moodCard,
               {
@@ -188,7 +191,6 @@ function MoodSelector({
               },
             ]}
             onPress={() => onSelect(m.key, m.rating)}
-            activeOpacity={0.7}
           >
             <MoodFace
               mood={m.key}
@@ -206,7 +208,7 @@ function MoodSelector({
             >
               {m.label}
             </Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         );
       })}
     </View>
@@ -246,17 +248,24 @@ function CheckInLanding({
       <CIStepHeader current={1} total={totalHabits + 1} onClose={onClose} />
 
       <View style={styles.landingCenter}>
-        <View style={[styles.moonCircle, { backgroundColor: colors.accent }]}>
-          <MoonIcon color="#fff" />
-        </View>
-        <Text style={[styles.landingTitle, { color: colors.textPrimary }]}>
-          Let's look back at today.
-        </Text>
-        <Text style={[styles.landingSub, { color: colors.textSecondary }]}>
-          Take a moment to reflect on how you showed up.
-        </Text>
+        <FadeInView delay={0} slideDistance={0}>
+          <View style={[styles.moonCircle, { backgroundColor: colors.accent }]}>
+            <MoonIcon color="#fff" />
+          </View>
+        </FadeInView>
+        <FadeInView delay={150}>
+          <Text style={[styles.landingTitle, { color: colors.textPrimary }]}>
+            Let's look back at today.
+          </Text>
+        </FadeInView>
+        <FadeInView delay={300}>
+          <Text style={[styles.landingSub, { color: colors.textSecondary }]}>
+            Take a moment to reflect on how you showed up.
+          </Text>
+        </FadeInView>
 
         {/* Today's overview card */}
+        <FadeInView delay={450}>
         <View style={[styles.overviewCard, { backgroundColor: colors.surface }]}>
           <View style={[styles.overviewLeft, { borderRightColor: colors.border }]}>
             <Text style={[styles.overviewCount, { color: colors.accent }]}>
@@ -270,6 +279,7 @@ function CheckInLanding({
             {summaryText}
           </Text>
         </View>
+        </FadeInView>
       </View>
 
       <CIFooter>
@@ -452,16 +462,19 @@ function DailySummary({
       <CIStepHeader current={totalSteps} total={totalSteps} onClose={onClose} />
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 20 }} keyboardShouldPersistTaps="handled">
-        <View style={{ paddingHorizontal: 24, paddingTop: 20 }}>
-          <Text style={[styles.summaryEyebrow, { color: colors.accent }]}>
-            Today's reflection
-          </Text>
-          <Text style={[styles.summaryTitle, { color: colors.textPrimary }]}>
-            You're someone who shows up.
-          </Text>
-        </View>
+        <FadeInView delay={0}>
+          <View style={{ paddingHorizontal: 24, paddingTop: 20 }}>
+            <Text style={[styles.summaryEyebrow, { color: colors.accent }]}>
+              Today's reflection
+            </Text>
+            <Text style={[styles.summaryTitle, { color: colors.textPrimary }]}>
+              You're someone who shows up.
+            </Text>
+          </View>
+        </FadeInView>
 
         {/* Streak note */}
+        <FadeInView delay={150}>
         <View style={{ paddingHorizontal: 24, paddingTop: 18 }}>
           <View style={[styles.streakNote, { backgroundColor: colors.surface }]}>
             <View style={[styles.streakIcon, { backgroundColor: colors.surfaceAlt }]}>
@@ -479,8 +492,10 @@ function DailySummary({
             </View>
           </View>
         </View>
+        </FadeInView>
 
         {/* Today's highlights */}
+        <FadeInView delay={300}>
         <View style={{ paddingHorizontal: 24, paddingTop: 20 }}>
           <Text style={[styles.highlightsLabel, { color: colors.textSecondary }]}>
             Today's highlights
@@ -512,13 +527,16 @@ function DailySummary({
             })}
           </View>
         </View>
+        </FadeInView>
 
         {/* Closing affirmation */}
-        <View style={{ paddingHorizontal: 24, paddingTop: 20, alignItems: 'center' }}>
-          <Text style={[styles.affirmation, { color: colors.textPrimary }]}>
-            Today proved it.
-          </Text>
-        </View>
+        <FadeInView delay={450}>
+          <View style={{ paddingHorizontal: 24, paddingTop: 20, alignItems: 'center' }}>
+            <Text style={[styles.affirmation, { color: colors.textPrimary }]}>
+              Today proved it.
+            </Text>
+          </View>
+        </FadeInView>
       </ScrollView>
 
       <CIFooter>

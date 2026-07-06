@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import FadeInView from '@/components/FadeInView';
+import AnimatedPressable from '@/components/AnimatedPressable';
 import {
   View,
   Text,
@@ -132,6 +134,7 @@ export default function WhyDetailScreen() {
       >
         {type === 'image' && imageUrl ? (
           <>
+            <FadeInView delay={0} slideDistance={0}>
             <View style={styles.imageWrap}>
               <Image
                 source={{ uri: imageUrl }}
@@ -141,7 +144,9 @@ export default function WhyDetailScreen() {
                 transition={200}
               />
             </View>
+            </FadeInView>
 
+            <FadeInView delay={150}>
             <View style={[styles.fieldWrap, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Caption</Text>
               <TextInput
@@ -154,14 +159,18 @@ export default function WhyDetailScreen() {
                 multiline
               />
             </View>
+            </FadeInView>
           </>
         ) : (
           <>
+            <FadeInView delay={0} slideDistance={0}>
             <View style={[styles.textCard, { backgroundColor: selectedColor }]}>
               <Text style={styles.textQuote}>"</Text>
               <Text style={styles.textContent}>{text || 'Your why'}</Text>
             </View>
+            </FadeInView>
 
+            <FadeInView delay={150}>
             <View style={[styles.fieldWrap, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Your why</Text>
               <TextInput
@@ -177,6 +186,7 @@ export default function WhyDetailScreen() {
                 {text.length}/500
               </Text>
             </View>
+            </FadeInView>
           </>
         )}
 
@@ -207,16 +217,16 @@ export default function WhyDetailScreen() {
       {/* Save button */}
       {hasChanges && (
         <View style={styles.footer}>
-          <TouchableOpacity
+          <AnimatedPressable
+            scaleValue={0.96}
             style={[styles.saveBtn, { backgroundColor: colors.accent }]}
             onPress={handleSave}
             disabled={saving}
-            activeOpacity={0.85}
           >
             <Text style={styles.saveBtnText}>
               {saving ? 'Saving...' : 'Save changes'}
             </Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       )}
     </KeyboardAvoidingView>

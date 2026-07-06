@@ -30,6 +30,8 @@ import { Habit } from '@/types';
 import { shouldStreakIncrement } from '@/utils/streakCalculator';
 import Svg, { Path } from 'react-native-svg';
 import Toast from 'react-native-toast-message';
+import AnimatedPressable from '@/components/AnimatedPressable';
+import FadeInView from '@/components/FadeInView';
 
 // Returns greeting based on time of day
 function getGreeting(): string {
@@ -90,10 +92,10 @@ function PledgeBanner({ onPress }: { onPress: () => void }) {
   const { colors } = useTheme();
 
   return (
-    <TouchableOpacity
+    <AnimatedPressable
       style={[styles.pledgeBanner, { backgroundColor: colors.accent }]}
       onPress={onPress}
-      activeOpacity={0.85}
+      scaleValue={0.95}
     >
       <View style={{ flex: 1 }}>
         <Text style={styles.pledgeBannerTitle}>Make today's pledge</Text>
@@ -102,7 +104,7 @@ function PledgeBanner({ onPress }: { onPress: () => void }) {
       <View style={styles.pledgeBannerArrow}>
         <IconChevronRight size={18} color="#fff" />
       </View>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 
@@ -153,9 +155,8 @@ const HabitCard = React.memo(function HabitCard({
   const { colors } = useTheme();
 
   return (
-    <TouchableOpacity
+    <AnimatedPressable
       style={[styles.card, { backgroundColor: colors.surface }]}
-      activeOpacity={0.7}
       onPress={() => onPress(habit)}
     >
       <View style={[styles.colorStrip, { backgroundColor: habit.color || colors.accent }]} />
@@ -174,7 +175,7 @@ const HabitCard = React.memo(function HabitCard({
         </View>
       </View>
       <StatusCircle state={status} accent={colors.accent} muted={colors.textTertiary} size={30} />
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 });
 
@@ -214,10 +215,9 @@ function SummaryFooter({
       </View>
       {/* Check-in prompt - shows after 5pm */}
       {showCheckIn && (
-        <TouchableOpacity
+        <AnimatedPressable
           style={[styles.checkInPrompt, { borderTopColor: colors.border }]}
           onPress={onCheckIn}
-          activeOpacity={0.7}
         >
           <View style={{ flex: 1 }}>
             <Text style={[styles.checkInTitle, { color: colors.textPrimary }]}>
@@ -231,7 +231,7 @@ function SummaryFooter({
             <Text style={[styles.checkInBegin, { color: colors.accent }]}>Begin</Text>
             <IconChevronRight size={16} color={colors.accent} />
           </View>
-        </TouchableOpacity>
+        </AnimatedPressable>
       )}
     </View>
   );
@@ -365,13 +365,13 @@ function PlusFAB({ onPress }: { onPress: () => void }) {
   const { colors } = useTheme();
 
   return (
-    <TouchableOpacity
+    <AnimatedPressable
       style={[styles.fab, { backgroundColor: colors.accent }]}
       onPress={onPress}
-      activeOpacity={0.85}
+      scaleValue={0.9}
     >
       <IconPlus size={26} color="#fff" strokeWidth={2.4} />
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 
@@ -559,13 +559,15 @@ export default function HomeScreen() {
               </View>
             </>
           }
-          renderItem={({ item }) => (
-            <HabitCard
-              habit={item}
-              status={getHabitStatus(item)}
-              timesShownUp={timesShownUp[item.id] ?? 0}
-              onPress={openSheet}
-            />
+          renderItem={({ item, index }) => (
+            <FadeInView delay={index * 80}>
+              <HabitCard
+                habit={item}
+                status={getHabitStatus(item)}
+                timesShownUp={timesShownUp[item.id] ?? 0}
+                onPress={openSheet}
+              />
+            </FadeInView>
           )}
           ListFooterComponent={
             todaysHabits.length > 0 ? (

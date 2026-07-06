@@ -9,6 +9,8 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Animated,
+  Dimensions,
   PanResponder,
 } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
@@ -557,15 +559,50 @@ export function HabitBottomSheet({
   onAddNote,
 }: HabitBottomSheetProps) {
   const { colors } = useTheme();
-  // Track internal variant so "I did some" can switch to partial view
   const [internalVariant, setInternalVariant] = useState<SheetVariant>(initialVariant);
+  const [modalVisible, setModalVisible] = useState(false);
 
-  // Reset internal variant only when the sheet opens or habit changes
+  const screenHeight = Dimensions.get('window').height;
+  const slideAnim = useRef(new Animated.Value(screenHeight)).current;
+  const backdropAnim = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     if (visible) {
+      setModalVisible(true);
       setInternalVariant(initialVariant);
+      slideAnim.setValue(screenHeight);
+      backdropAnim.setValue(0);
+
+      Animated.parallel([
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          useNativeDriver: true,
+          damping: 20,
+          stiffness: 200,
+          mass: 0.8,
+        }),
+        Animated.timing(backdropAnim, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else if (modalVisible) {
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: screenHeight,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(backdropAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start(() => setModalVisible(false));
     }
-  }, [visible, initialVariant]);
+  }, [visible]);
+
   const handleMarkComplete = () => {
     onMarkComplete();
     setInternalVariant('completed');
@@ -578,11 +615,9 @@ export function HabitBottomSheet({
 
   const handleNoteSubmit = (note: string) => {
     onAddNote(note);
-    // Return to the previous variant after saving
     setInternalVariant(initialVariant);
   };
 
-  // Pull-down gesture to dismiss the sheet
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -643,17 +678,21 @@ export function HabitBottomSheet({
       break;
   }
 
+  if (!modalVisible) return null;
+
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={modalVisible} transparent animationType="none" onRequestClose={onClose}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.backdrop}>
-          <Pressable style={{ flex: 1 }} onPress={onClose} />
-          <View style={[styles.sheet, { backgroundColor: colors.bg }]}>
-          <View {...panResponder.panHandlers} style={styles.dragZone}>
-            <SheetHandle />
-          </View>
+          <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.45)', opacity: backdropAnim }]}>
+            <Pressable style={{ flex: 1 }} onPress={onClose} />
+          </Animated.View>
+          <Animated.View style={[styles.sheet, { backgroundColor: colors.bg, transform: [{ translateY: slideAnim }] }]}>
+            <View {...panResponder.panHandlers} style={styles.dragZone}>
+              <SheetHandle />
+            </View>
             {body}
-          </View>
+          </Animated.View>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -663,7 +702,6 @@ export function HabitBottomSheet({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
     justifyContent: 'flex-end',
   },
   sheet: {

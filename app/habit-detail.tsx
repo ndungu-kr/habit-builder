@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import FadeInView from '@/components/FadeInView';
+import AnimatedPressable from '@/components/AnimatedPressable';
 import {
   View,
   Text,
@@ -199,16 +201,16 @@ function WhyCardInner({ why, featured }: { why: HabitWhy; featured: boolean }) {
 function AddWhyCard({ onPress }: { onPress: () => void }) {
   const { colors } = useTheme();
   return (
-    <TouchableOpacity
+    <AnimatedPressable
+      scaleValue={0.96}
       style={[whyStyles.addCard, { borderColor: colors.textTertiary }]}
       onPress={onPress}
-      activeOpacity={0.7}
     >
       <View style={[whyStyles.addCircle, { backgroundColor: colors.surfaceAlt }]}>
         <IconPlus size={20} color={colors.textSecondary} />
       </View>
       <Text style={[whyStyles.addLabel, { color: colors.textSecondary }]}>Add a why</Text>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 
@@ -558,15 +560,18 @@ export default function HabitDetailScreen() {
         contentContainerStyle={styles.scrollContent}
       >
         {/* Hero */}
-        <HabitHero
-          name={habitName}
-          accent={habitColor}
-          goalValue={goalValue}
-          goalUnit={goalUnit}
-          schedule={getScheduleLabel()}
-        />
+        <FadeInView delay={0}>
+          <HabitHero
+            name={habitName}
+            accent={habitColor}
+            goalValue={goalValue}
+            goalUnit={goalUnit}
+            schedule={getScheduleLabel()}
+          />
+        </FadeInView>
 
         {/* Whys grid */}
+        <FadeInView delay={100}>
         <View style={{ marginTop: 28 }}>
           <SectionHeader
             label={`Your whys \u00B7 ${whys.length}`}
@@ -633,8 +638,10 @@ export default function HabitDetailScreen() {
             </View>
           )}
         </View>
+        </FadeInView>
 
         {/* Stats */}
+        <FadeInView delay={200}>
         <View style={{ marginTop: 28 }}>
           <SectionHeader label="Stats" />
           <View style={styles.statsGrid}>
@@ -658,9 +665,11 @@ export default function HabitDetailScreen() {
             <MiniStat value={formatCumulative()} label={`Cumulative ${goalUnit}`} />
           </View>
         </View>
+        </FadeInView>
 
         {/* Milestones */}
         {milestones.length > 0 && (
+          <FadeInView delay={300}>
           <View style={{ marginTop: 28 }}>
             <SectionHeader label="Milestone timeline" />
             <View style={styles.milestoneList}>
@@ -677,6 +686,7 @@ export default function HabitDetailScreen() {
               ))}
             </View>
           </View>
+          </FadeInView>
         )}
 
         {/* Journal */}

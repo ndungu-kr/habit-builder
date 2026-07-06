@@ -19,6 +19,9 @@ import { Habit, HabitWhy } from '@/types';
 import { useCompletionStore } from '@/stores/completionStore';
 import { useWhyStore } from '@/stores/whyStore';
 import Toast from 'react-native-toast-message';
+import * as Haptics from 'expo-haptics';
+import AnimatedPressable from '@/components/AnimatedPressable';
+import FadeInView from '@/components/FadeInView';
 
 // Progress dots - shows which habit you're pledging to
 function PledgeProgress({ current, total }: { current: number; total: number }) {
@@ -89,14 +92,19 @@ function PledgeButton({
 }) {
   const { colors } = useTheme();
 
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onPress();
+  };
+
   return (
-    <TouchableOpacity
+    <AnimatedPressable
       style={[styles.pledgeBtn, { backgroundColor: colors.accent }]}
-      onPress={onPress}
-      activeOpacity={0.85}
+      onPress={handlePress}
+      scaleValue={0.95}
     >
       <Text style={styles.pledgeBtnText}>{label}</Text>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 
@@ -132,24 +140,31 @@ function PledgeLanding({
       <PledgeTopBar current={0} total={habitCount} onClose={onClose} />
 
       <View style={styles.landingCenter}>
-        {/* Sunrise-inspired circle */}
-        <View style={[styles.sunCircle, { backgroundColor: colors.accent }]}>
-          <View style={styles.sunInner} />
-        </View>
+        <FadeInView delay={0} duration={500} slideDistance={0}>
+          <View style={[styles.sunCircle, { backgroundColor: colors.accent }]}>
+            <View style={styles.sunInner} />
+          </View>
+        </FadeInView>
 
-        <Text style={[styles.landingGreeting, { color: colors.textPrimary }]}>
-          {greeting}
-        </Text>
-        <Text style={[styles.landingSubtext, { color: colors.textSecondary }]}>
-          Ready to show up today? {habitCount} habit{habitCount !== 1 ? 's' : ''} waiting
-          for your intention.
-        </Text>
-
-        <View style={[styles.dateChip, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.dateChipText, { color: colors.textSecondary }]}>
-            {dateStr} · {timeStr}
+        <FadeInView delay={200} duration={450}>
+          <Text style={[styles.landingGreeting, { color: colors.textPrimary }]}>
+            {greeting}
           </Text>
-        </View>
+        </FadeInView>
+        <FadeInView delay={400} duration={450}>
+          <Text style={[styles.landingSubtext, { color: colors.textSecondary }]}>
+            Ready to show up today? {habitCount} habit{habitCount !== 1 ? 's' : ''} waiting
+            for your intention.
+          </Text>
+        </FadeInView>
+
+        <FadeInView delay={600} duration={400}>
+          <View style={[styles.dateChip, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.dateChipText, { color: colors.textSecondary }]}>
+              {dateStr} · {timeStr}
+            </Text>
+          </View>
+        </FadeInView>
       </View>
 
       <View style={{ paddingHorizontal: 24, paddingBottom: 40 }}>
@@ -248,14 +263,16 @@ function PledgeHabit({
       <PledgeTopBar current={current} total={total} onClose={onClose} />
 
       {/* Habit name and times shown up */}
-      <View style={{ paddingHorizontal: 24, paddingTop: 28 }}>
-        <Text style={[styles.habitNameLarge, { color: colors.textPrimary }]}>
-          {habit.name}
-        </Text>
-        <Text style={[styles.timesShownUp, { color: colors.accent }]}>
-          You've shown up {timesShownUp} time{timesShownUp !== 1 ? 's' : ''}
-        </Text>
-      </View>
+      <FadeInView delay={0} duration={350}>
+        <View style={{ paddingHorizontal: 24, paddingTop: 28 }}>
+          <Text style={[styles.habitNameLarge, { color: colors.textPrimary }]}>
+            {habit.name}
+          </Text>
+          <Text style={[styles.timesShownUp, { color: colors.accent }]}>
+            You've shown up {timesShownUp} time{timesShownUp !== 1 ? 's' : ''}
+          </Text>
+        </View>
+      </FadeInView>
 
       {/* Why cards */}
       <View style={{ flex: 1, paddingTop: 28 }}>
@@ -352,14 +369,20 @@ function PledgeConfirmation({
       <PledgeTopBar current={total} total={total} onClose={onDone} light />
 
       <View style={styles.confirmCenter}>
-        <View style={styles.confirmCircle}>
-          <IconCheck size={42} color={colors.accent} strokeWidth={2.8} />
-        </View>
-        <Text style={styles.confirmTitle}>Pledged.</Text>
-        <Text style={styles.confirmSub}>
-          {habitCount} intention{habitCount !== 1 ? 's' : ''} set. Now go show up for{' '}
-          {habitCount !== 1 ? 'them' : 'it'}.
-        </Text>
+        <FadeInView delay={0} duration={500} slideDistance={0}>
+          <View style={styles.confirmCircle}>
+            <IconCheck size={42} color={colors.accent} strokeWidth={2.8} />
+          </View>
+        </FadeInView>
+        <FadeInView delay={200} duration={400}>
+          <Text style={styles.confirmTitle}>Pledged.</Text>
+        </FadeInView>
+        <FadeInView delay={400} duration={400}>
+          <Text style={styles.confirmSub}>
+            {habitCount} intention{habitCount !== 1 ? 's' : ''} set. Now go show up for{' '}
+            {habitCount !== 1 ? 'them' : 'it'}.
+          </Text>
+        </FadeInView>
       </View>
 
       {/* Tap anywhere to dismiss */}

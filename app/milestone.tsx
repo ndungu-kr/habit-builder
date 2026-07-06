@@ -1,4 +1,7 @@
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Animated, Easing, AccessibilityInfo } from 'react-native';
+import { useEffect, useRef } from 'react';
+import FadeInView from '@/components/FadeInView';
+import AnimatedPressable from '@/components/AnimatedPressable';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useTheme } from '@/providers/ThemeProvider';
 import { typography } from '@/theme/typography';
@@ -79,6 +82,60 @@ function CloseIcon({ color }: { color: string }) {
       <Path d="M6 6l12 12M18 6L6 18"
         stroke={color} strokeWidth={2} strokeLinecap="round" />
     </Svg>
+  );
+}
+
+// ── Animated Badge ──
+
+function BadgeBounceIn({ children }: { children: React.ReactNode }) {
+  const scale = useRef(new Animated.Value(0.3)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
+  const rotate = useRef(new Animated.Value(-0.08)).current;
+
+  useEffect(() => {
+    AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
+      if (enabled) {
+        scale.setValue(1);
+        opacity.setValue(1);
+        rotate.setValue(0);
+        return;
+      }
+
+      Animated.sequence([
+        Animated.delay(450),
+        Animated.parallel([
+          Animated.spring(scale, {
+            toValue: 1,
+            useNativeDriver: true,
+            damping: 8,
+            stiffness: 120,
+            mass: 0.7,
+          }),
+          Animated.timing(opacity, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.spring(rotate, {
+            toValue: 0,
+            useNativeDriver: true,
+            damping: 10,
+            stiffness: 80,
+          }),
+        ]),
+      ]).start();
+    });
+  }, []);
+
+  const spin = rotate.interpolate({
+    inputRange: [-1, 1],
+    outputRange: ['-30deg', '30deg'],
+  });
+
+  return (
+    <Animated.View style={{ opacity, transform: [{ scale }, { rotate: spin }] }}>
+      {children}
+    </Animated.View>
   );
 }
 
@@ -209,46 +266,58 @@ export default function MilestoneScreen() {
 
         {/* Badge */}
         <View style={styles.badgeWrap}>
-          {isStreak ? (
-            <StreakBadge days={count} hue={getHue(count)} />
-          ) : (
-            <HabitBadge count={count} color={habitColor} />
-          )}
+          <BadgeBounceIn>
+            {isStreak ? (
+              <StreakBadge days={count} hue={getHue(count)} />
+            ) : (
+              <HabitBadge count={count} color={habitColor} />
+            )}
+          </BadgeBounceIn>
         </View>
 
         {/* Text content */}
         <View style={styles.textBlock}>
-          <Text style={[styles.eyebrow, { color: colors.accent }]}>{content.eyebrow}</Text>
-          <Text style={[styles.headline, { color: colors.textPrimary }]}>{content.headline}</Text>
-          <Text style={[styles.message, { color: colors.textSecondary }]}>{content.message}</Text>
+          <FadeInView delay={250}>
+            <Text style={[styles.eyebrow, { color: colors.accent }]}>{content.eyebrow}</Text>
+          </FadeInView>
+          <FadeInView delay={400}>
+            <Text style={[styles.headline, { color: colors.textPrimary }]}>{content.headline}</Text>
+          </FadeInView>
+          <FadeInView delay={550}>
+            <Text style={[styles.message, { color: colors.textSecondary }]}>{content.message}</Text>
+          </FadeInView>
         </View>
 
         {/* Freeze earned note (streak milestones at multiples of 7) */}
         {freezeEarned && (
-          <View style={styles.noteWrap}>
-            <FreezeEarnedNote colors={colors} freezeCount={freezeCount} />
-          </View>
+          <FadeInView delay={700}>
+            <View style={styles.noteWrap}>
+              <FreezeEarnedNote colors={colors} freezeCount={freezeCount} />
+            </View>
+          </FadeInView>
         )}
 
         <View style={{ flex: 1, minHeight: 40 }} />
       </ScrollView>
 
       {/* Action row */}
-      <View style={styles.actionRow}>
-        <Pressable style={[styles.actionBtn, { backgroundColor: colors.surface }]}>
-          <SaveIcon color={colors.textPrimary} />
-          <Text style={[styles.actionLabel, { color: colors.textPrimary }]}>Save</Text>
-        </Pressable>
-        <Pressable style={[styles.actionBtn, { backgroundColor: colors.surface }]}>
-          <ShareIcon color={colors.textPrimary} />
-          <Text style={[styles.actionLabel, { color: colors.textPrimary }]}>Share</Text>
-        </Pressable>
-        <Pressable style={[styles.actionBtn, { backgroundColor: colors.accent }]}
-          onPress={() => router.back()}>
-          <ArrowRightIcon color="#fff" />
-          <Text style={[styles.actionLabel, { color: '#fff' }]}>Keep going</Text>
-        </Pressable>
-      </View>
+      <FadeInView delay={700}>
+        <View style={styles.actionRow}>
+          <AnimatedPressable scaleValue={0.93} style={[styles.actionBtn, { backgroundColor: colors.surface }]}>
+            <SaveIcon color={colors.textPrimary} />
+            <Text style={[styles.actionLabel, { color: colors.textPrimary }]}>Save</Text>
+          </AnimatedPressable>
+          <AnimatedPressable scaleValue={0.93} style={[styles.actionBtn, { backgroundColor: colors.surface }]}>
+            <ShareIcon color={colors.textPrimary} />
+            <Text style={[styles.actionLabel, { color: colors.textPrimary }]}>Share</Text>
+          </AnimatedPressable>
+          <AnimatedPressable scaleValue={0.93} style={[styles.actionBtn, { backgroundColor: colors.accent }]}
+            onPress={() => router.back()}>
+            <ArrowRightIcon color="#fff" />
+            <Text style={[styles.actionLabel, { color: '#fff' }]}>Keep going</Text>
+          </AnimatedPressable>
+        </View>
+      </FadeInView>
     </View>
   );
 }
