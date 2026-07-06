@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Image,
   ScrollView,
   Dimensions,
   NativeSyntheticEvent,
@@ -12,6 +11,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/providers/ThemeProvider';
+import { Image } from 'expo-image';
 import { useHabitStore } from '@/stores/habitStore';
 import { usePledgeStore } from '@/stores/pledgeStore';
 import { IconCheck, IconChevronRight } from '@/components/Icons';
@@ -220,7 +220,9 @@ function PledgeHabit({
           <Image
             source={{ uri: why.image_url }}
             style={{ width: '100%', aspectRatio: imgRatio, borderRadius: 20 }}
-            resizeMode="cover"
+            contentFit="cover"
+            cachePolicy="disk"
+            transition={200}
           />
         </View>
       );

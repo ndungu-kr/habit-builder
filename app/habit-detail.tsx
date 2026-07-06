@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  Image,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
@@ -18,6 +17,7 @@ import { IconFlame, IconChevronRight, IconPlus } from '@/components/Icons';
 import { HabitWhy } from '@/types';
 import HelpTooltip from '@/components/HelpTooltip';
 import Toast from 'react-native-toast-message';
+import { Image } from 'expo-image';
 import { NestableScrollContainer, NestableDraggableFlatList, RenderItemParams } from 'react-native-draggable-flatlist';
 
 // ── Icons ──
@@ -175,7 +175,9 @@ function WhyCardInner({ why, featured }: { why: HabitWhy; featured: boolean }) {
             aspectRatio: why.image_aspect_ratio || 3 / 4,
             borderRadius: 16,
           }}
-          resizeMode="cover"
+          contentFit="cover"
+          cachePolicy="disk"
+          transition={200}
         />
       </View>
     );

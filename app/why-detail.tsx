@@ -5,13 +5,13 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Image,
   ScrollView,
   Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Image } from 'expo-image';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useWhyStore } from '@/stores/whyStore';
 import Toast from 'react-native-toast-message';
@@ -136,7 +136,9 @@ export default function WhyDetailScreen() {
               <Image
                 source={{ uri: imageUrl }}
                 style={[styles.fullImage, { aspectRatio: Number(params.aspectRatio) || 3 / 4 }]}
-                resizeMode="cover"
+                contentFit="cover"
+                cachePolicy="disk"
+                transition={200}
               />
             </View>
 

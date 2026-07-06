@@ -8,13 +8,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Image,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useWhyStore } from '@/stores/whyStore';
 import Toast from 'react-native-toast-message';
+import { Image } from 'expo-image';
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
 
 function CloseIcon({ color }: { color: string }) {
@@ -171,7 +171,8 @@ export default function AddWhyScreen() {
                 <Image
                   source={{ uri: imageUri }}
                   style={[styles.imagePreview, { aspectRatio: 3 / 4 }]}
-                  resizeMode="cover"
+                  contentFit="cover"
+                  transition={200}
                 />
               ) : (
                 <View style={styles.imagePickerPlaceholder}>
