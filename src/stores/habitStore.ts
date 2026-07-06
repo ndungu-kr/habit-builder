@@ -76,94 +76,117 @@ export const useHabitStore = create<HabitState>((set, get) => ({
   },
 
   addHabit: async (newHabit) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return 'Not logged in';
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return 'Not logged in';
 
-    const currentHabits = get().habits;
-    const nextSortOrder = currentHabits.length;
+      const currentHabits = get().habits;
+      const nextSortOrder = currentHabits.length;
 
-    const { error } = await supabase.from('habits').insert({
-      user_id: user.id,
-      name: newHabit.name,
-      color: newHabit.color,
-      schedule_type: newHabit.schedule_type,
-      scheduled_days: newHabit.scheduled_days,
-      goal_value: newHabit.goal_value,
-      goal_unit: newHabit.goal_unit,
-      sort_order: nextSortOrder,
-    });
+      const { error } = await supabase.from('habits').insert({
+        user_id: user.id,
+        name: newHabit.name,
+        color: newHabit.color,
+        schedule_type: newHabit.schedule_type,
+        scheduled_days: newHabit.scheduled_days,
+        goal_value: newHabit.goal_value,
+        goal_unit: newHabit.goal_unit,
+        sort_order: nextSortOrder,
+      });
 
-    if (error) return error.message;
+      if (error) return error.message;
 
-    await get().fetchHabits();
-    return null;
+      await get().fetchHabits();
+      return null;
+    } catch (e: any) {
+      return e.message || 'Failed to create habit';
+    }
   },
 
   deleteHabit: async (id) => {
-    const { error } = await supabase
-      .from('habits')
-      .delete()
-      .eq('id', id);
+    try {
+      const { error } = await supabase
+        .from('habits')
+        .delete()
+        .eq('id', id);
 
-    if (error) return error.message;
+      if (error) return error.message;
 
-    await get().fetchHabits();
-    return null;
+      await get().fetchHabits();
+      return null;
+    } catch (e: any) {
+      return e.message || 'Failed to delete habit';
+    }
   },
 
   archiveHabit: async (id) => {
-    const { error } = await supabase
-      .from('habits')
-      .update({ is_active: false })
-      .eq('id', id);
+    try {
+      const { error } = await supabase
+        .from('habits')
+        .update({ is_active: false })
+        .eq('id', id);
 
-    if (error) return error.message;
+      if (error) return error.message;
 
-    await get().fetchHabits();
-    await get().fetchArchivedHabits();
-    return null;
+      await get().fetchHabits();
+      await get().fetchArchivedHabits();
+      return null;
+    } catch (e: any) {
+      return e.message || 'Failed to archive habit';
+    }
   },
 
   reactivateHabit: async (id) => {
-    // Check the 5-habit limit before reactivating
-    const activeCount = get().habits.length;
-    if (activeCount >= 5) return 'You already have 5 active habits. Archive one first.';
+    try {
+      const activeCount = get().habits.length;
+      if (activeCount >= 5) return 'You already have 5 active habits. Archive one first.';
 
-    const nextSortOrder = activeCount;
+      const nextSortOrder = activeCount;
 
-    const { error } = await supabase
-      .from('habits')
-      .update({ is_active: true, sort_order: nextSortOrder })
-      .eq('id', id);
+      const { error } = await supabase
+        .from('habits')
+        .update({ is_active: true, sort_order: nextSortOrder })
+        .eq('id', id);
 
-    if (error) return error.message;
+      if (error) return error.message;
 
-    await get().fetchHabits();
-    await get().fetchArchivedHabits();
-    return null;
+      await get().fetchHabits();
+      await get().fetchArchivedHabits();
+      return null;
+    } catch (e: any) {
+      return e.message || 'Failed to reactivate habit';
+    }
   },
 
   reorderHabits: async (orderedIds) => {
-    const updates = orderedIds.map((id, index) =>
-      supabase.from('habits').update({ sort_order: index }).eq('id', id)
-    );
+    try {
+      const updates = orderedIds.map((id, index) =>
+        supabase.from('habits').update({ sort_order: index }).eq('id', id)
+      );
 
-    const results = await Promise.all(updates);
-    const firstError = results.find((r) => r.error);
-    if (firstError?.error) return firstError.error.message;
+      const results = await Promise.all(updates);
+      const firstError = results.find((r) => r.error);
+      if (firstError?.error) return firstError.error.message;
 
-    await get().fetchHabits();
-    return null;
+      await get().fetchHabits();
+      return null;
+    } catch (e: any) {
+      return e.message || 'Failed to reorder habits';
+    }
   },
   updateHabit: async (id, updates) => {
-    const { error } = await supabase
-      .from('habits')
-      .update(updates)
-      .eq('id', id);
+    try {
+      const { error } = await supabase
+        .from('habits')
+        .update(updates)
+        .eq('id', id);
 
-    if (error) return error.message;
+      if (error) return error.message;
 
-    await get().fetchHabits();
-    return null;
+      await get().fetchHabits();
+      return null;
+    } catch (e: any) {
+      return e.message || 'Failed to update habit';
+    }
   },
 }));
