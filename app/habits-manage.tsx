@@ -7,6 +7,7 @@ import {
   Alert,
   StyleSheet,
 } from 'react-native';
+import { NestableScrollContainer, NestableDraggableFlatList, RenderItemParams } from 'react-native-draggable-flatlist';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useHabitStore } from '@/stores/habitStore';
@@ -63,11 +64,13 @@ function HabitListRow({
   habit,
   archived,
   onPress,
+  onDrag,
   colors,
 }: {
   habit: Habit;
   archived?: boolean;
   onPress: () => void;
+  onDrag?: () => void;
   colors: any;
 }) {
   const scheduleLabel =
@@ -128,14 +131,14 @@ function HabitListRow({
             </Text>
           </View>
         ) : (
-          <View style={styles.dragHandle}>
+          <TouchableOpacity onPressIn={onDrag} style={styles.dragHandle}>
             {[0, 1, 2].map((i) => (
               <View
                 key={i}
                 style={[styles.dragLine, { backgroundColor: colors.textTertiary }]}
               />
             ))}
-          </View>
+          </TouchableOpacity>
         )}
       </View>
     </TouchableOpacity>
@@ -154,6 +157,7 @@ export default function HabitsManageScreen() {
     fetchArchivedHabits,
     archiveHabit,
     reactivateHabit,
+    reorderHabits,
   } = useHabitStore();
 
   useFocusEffect(
@@ -197,11 +201,16 @@ export default function HabitsManageScreen() {
     );
   };
 
+  const handleReorder = async (orderedData: Habit[]) => {
+    const err = await reorderHabits(orderedData.map((h) => h.id));
+    if (err) Toast.show({ type: 'error', text1: 'Couldn\'t reorder', text2: err });
+  };
+
   const slotsAvailable = 5 - habits.length;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+      <NestableScrollContainer contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={{ height: 50 }} />
 
         {/* Back button */}
@@ -296,14 +305,20 @@ export default function HabitsManageScreen() {
               overflow: 'hidden',
             }}
           >
-            {habits.map((habit) => (
-              <HabitListRow
-                key={habit.id}
-                habit={habit}
-                colors={colors}
-                onPress={() => handleArchive(habit)}
-              />
-            ))}
+            <NestableDraggableFlatList
+              data={habits}
+              keyExtractor={(item) => item.id}
+              onDragEnd={({ data }) => handleReorder(data)}
+              scrollEnabled={false}
+              renderItem={({ item, drag, isActive }: RenderItemParams<Habit>) => (
+                <HabitListRow
+                  habit={item}
+                  colors={colors}
+                  onPress={() => handleArchive(item)}
+                  onDrag={drag}
+                />
+              )}
+            />
           </View>
 
           {/* Add new habit button */}
@@ -393,7 +408,7 @@ export default function HabitsManageScreen() {
             </View>
           </View>
         )}
-      </ScrollView>
+      </NestableScrollContainer>
     </View>
   );
 }

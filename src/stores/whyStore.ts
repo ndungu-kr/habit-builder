@@ -12,6 +12,7 @@ interface WhyState {
   updateWhy: (whyId: string, habitId: string, updates: { text_content?: string; caption?: string | null; color?: string }) => Promise<string | null>;  
   deleteWhy: (whyId: string, habitId: string) => Promise<string | null>;
   toggleFeatured: (whyId: string, habitId: string) => Promise<string | null>;
+  reorderWhys: (habitId: string, orderedIds: string[]) => Promise<string | null>;
 }
 
 export const useWhyStore = create<WhyState>((set, get) => ({
@@ -229,6 +230,38 @@ export const useWhyStore = create<WhyState>((set, get) => ({
       return null;
     } catch (e: any) {
       return e.message || 'Failed to update featured status';
+    }
+  },
+
+  reorderWhys: async (habitId, orderedIds) => {
+    try {
+      const updates = orderedIds.map((id, index) =>
+        supabase.from('habit_whys').update({ sort_order: index }).eq('id', id)
+      );
+
+      const results = await Promise.all(updates);
+      const firstError = results.find((r) => r.error);
+      if (firstError?.error) return firstError.error.message;
+
+      // Update local state to reflect new order
+      const { whysByHabit } = get();
+      const whys = whysByHabit[habitId] ?? [];
+      const reordered = orderedIds
+        .map((id, index) => {
+          const why = whys.find((w) => w.id === id);
+          return why ? { ...why, sort_order: index } : null;
+        })
+        .filter(Boolean) as HabitWhy[];
+
+      set({
+        whysByHabit: {
+          ...whysByHabit,
+          [habitId]: reordered,
+        },
+      });
+      return null;
+    } catch (e: any) {
+      return e.message || 'Failed to reorder whys';
     }
   },
 }));

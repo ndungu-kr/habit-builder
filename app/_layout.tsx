@@ -1,4 +1,5 @@
 import Toast, { toastConfig } from '@/components/Toast';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
@@ -72,9 +73,11 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <ThemeProvider>
-      <RootLayoutNav />
-      <Toast config={toastConfig} position="top" topOffset={60} />
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider>
+        <RootLayoutNav />
+        <Toast config={toastConfig} position="top" topOffset={60} />
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

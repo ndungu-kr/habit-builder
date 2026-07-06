@@ -18,6 +18,7 @@ import { IconFlame, IconChevronRight, IconPlus } from '@/components/Icons';
 import { HabitWhy } from '@/types';
 import HelpTooltip from '@/components/HelpTooltip';
 import Toast from 'react-native-toast-message';
+import { NestableScrollContainer, NestableDraggableFlatList, RenderItemParams } from 'react-native-draggable-flatlist';
 
 // ── Icons ──
 
@@ -158,60 +159,38 @@ const heroStyles = StyleSheet.create({
 
 // ── Why Card ──
 
-function WhyCard({ why, featured, habitId }: { why: HabitWhy; featured: boolean; habitId: string }) {
-  const router = useRouter();
-
-  const handlePress = () => {
-    router.push({
-      pathname: '/why-detail',
-      params: {
-        whyId: why.id,
-        habitId,
-        type: why.type,
-        textContent: why.text_content || '',
-        imageUrl: why.image_url || '',
-        caption: why.caption || '',
-        color: why.color,
-        aspectRatio: String(why.image_aspect_ratio || 0.75),
-      },
-    });
-  };
-
+function WhyCardInner({ why, featured }: { why: HabitWhy; featured: boolean }) {
   if (why.type === 'image' && why.image_url) {
     return (
-      <TouchableOpacity onPress={handlePress} activeOpacity={0.8}>
-        <View style={[whyStyles.card, { backgroundColor: why.color, padding: 0, paddingHorizontal: 0, minHeight: 0 }]}>
-          {featured && (
-            <View style={[whyStyles.starBadge, { zIndex: 2 }]}>
-              <StarIcon />
-            </View>
-          )}
-          <Image
-            source={{ uri: why.image_url }}
-            style={{
-              width: '100%',
-              aspectRatio: why.image_aspect_ratio || 3 / 4,
-              borderRadius: 16,
-            }}
-            resizeMode="cover"
-          />
-        </View>
-      </TouchableOpacity>
+      <View style={[whyStyles.card, { backgroundColor: why.color, padding: 0, paddingHorizontal: 0, minHeight: 0 }]}>
+        {featured && (
+          <View style={[whyStyles.starBadge, { zIndex: 2 }]}>
+            <StarIcon />
+          </View>
+        )}
+        <Image
+          source={{ uri: why.image_url }}
+          style={{
+            width: '100%',
+            aspectRatio: why.image_aspect_ratio || 3 / 4,
+            borderRadius: 16,
+          }}
+          resizeMode="cover"
+        />
+      </View>
     );
   }
 
   return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.8}>
-      <View style={[whyStyles.card, { backgroundColor: why.color }]}>
-        {featured && (
-          <View style={whyStyles.starBadge}>
-            <StarIcon />
-          </View>
-        )}
-        <Text style={whyStyles.quote}>"</Text>
-        <Text style={whyStyles.text}>{why.text_content}</Text>
-      </View>
-    </TouchableOpacity>
+    <View style={[whyStyles.card, { backgroundColor: why.color }]}>
+      {featured && (
+        <View style={whyStyles.starBadge}>
+          <StarIcon />
+        </View>
+      )}
+      <Text style={whyStyles.quote}>"</Text>
+      <Text style={whyStyles.text}>{why.text_content}</Text>
+    </View>
   );
 }
 
@@ -476,11 +455,12 @@ export default function HabitDetailScreen() {
   const scheduleType = params.scheduleType || 'everyday';
   const scheduledDays = params.scheduledDays || '';
 
-  const { whysByHabit, fetchWhysForHabits } = useWhyStore();
+  const { whysByHabit, fetchWhysForHabits, reorderWhys } = useWhyStore();
   const { stats, milestones, journal, fetchHabitDetail } = useHabitDetailStore();
   const { deleteHabit, archiveHabit } = useHabitStore();
 
   const whys = whysByHabit[habitId] ?? [];
+  const [reordering, setReordering] = useState(false);
 
   useEffect(() => {
     fetchWhysForHabits([habitId]);
@@ -529,6 +509,11 @@ export default function HabitDetailScreen() {
     );
   };
 
+  const handleReorderWhys = async (orderedData: HabitWhy[]) => {
+    const err = await reorderWhys(habitId, orderedData.map((w) => w.id));
+    if (err) Toast.show({ type: 'error', text1: 'Couldn\'t reorder', text2: err });
+  };
+
   const handleAddWhy = () => {
     router.push({
       pathname: '/add-why',
@@ -566,7 +551,7 @@ export default function HabitDetailScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView
+      <NestableScrollContainer
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
@@ -581,13 +566,70 @@ export default function HabitDetailScreen() {
 
         {/* Whys grid */}
         <View style={{ marginTop: 28 }}>
-          <SectionHeader label={`Your whys \u00B7 ${whys.length}`} />
-          <View style={styles.whyGrid}>
-            {whys.map((w) => (
-              <WhyCard key={w.id} why={w} featured={w.is_featured} habitId={habitId} />
-            ))}
-            <AddWhyCard onPress={handleAddWhy} />
-          </View>
+          <SectionHeader
+            label={`Your whys \u00B7 ${whys.length}`}
+            action={whys.length > 1 ? (reordering ? 'Done' : 'Reorder') : undefined}
+            onAction={() => setReordering((v) => !v)}
+          />
+          {reordering ? (
+            <View style={{ marginHorizontal: 24, marginTop: 12, backgroundColor: colors.surface, borderRadius: 16, overflow: 'hidden' }}>
+              <NestableDraggableFlatList
+                data={whys}
+                keyExtractor={(item) => item.id}
+                onDragEnd={({ data }) => handleReorderWhys(data)}
+                scrollEnabled={false}
+                renderItem={({ item, drag, isActive }: RenderItemParams<HabitWhy>) => (
+                  <TouchableOpacity
+                    onPressIn={drag}
+                    disabled={isActive}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.reorderRow, { borderBottomColor: colors.border }]}>
+                      <View style={[styles.reorderColor, { backgroundColor: item.color }]} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontFamily: 'Nunito_700Bold', fontSize: 14, color: colors.textPrimary }} numberOfLines={1}>
+                          {item.type === 'image' ? (item.caption || 'Image why') : (item.text_content || 'Text why')}
+                        </Text>
+                        <Text style={{ fontFamily: 'Nunito_500Medium', fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
+                          {item.type === 'image' ? 'Photo' : 'Text'}
+                        </Text>
+                      </View>
+                      <View style={{ gap: 2, paddingRight: 4 }}>
+                        {[0, 1, 2].map((i) => (
+                          <View key={i} style={{ width: 16, height: 2, borderRadius: 999, backgroundColor: colors.textTertiary, opacity: 0.6 }} />
+                        ))}
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+          ) : (
+            <View style={styles.whyGrid}>
+              {whys.map((w) => (
+                <TouchableOpacity
+                  key={w.id}
+                  activeOpacity={0.8}
+                  onPress={() => router.push({
+                    pathname: '/why-detail',
+                    params: {
+                      whyId: w.id,
+                      habitId,
+                      type: w.type,
+                      textContent: w.text_content || '',
+                      imageUrl: w.image_url || '',
+                      caption: w.caption || '',
+                      color: w.color,
+                      aspectRatio: String(w.image_aspect_ratio || 0.75),
+                    },
+                  })}
+                >
+                  <WhyCardInner why={w} featured={w.is_featured} />
+                </TouchableOpacity>
+              ))}
+              <AddWhyCard onPress={handleAddWhy} />
+            </View>
+          )}
         </View>
 
         {/* Stats */}
@@ -690,7 +732,7 @@ export default function HabitDetailScreen() {
             />
           </View>
         </View>
-      </ScrollView>
+      </NestableScrollContainer>
     </View>
   );
 }
@@ -716,4 +758,9 @@ const styles = StyleSheet.create({
   milestoneList: { paddingHorizontal: 24, paddingTop: 14 },
   journalList: { paddingHorizontal: 24, paddingTop: 12, gap: 10 },
   manageCard: { marginHorizontal: 24, marginTop: 12, borderRadius: 16, overflow: 'hidden' },
+  reorderRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    padding: 14, paddingHorizontal: 12, borderBottomWidth: 1,
+  },
+  reorderColor: { width: 4, alignSelf: 'stretch', borderRadius: 999 },
 });
