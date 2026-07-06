@@ -7,6 +7,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
+  Keyboard,
+  Pressable,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
@@ -70,6 +72,7 @@ export default function EditProfileScreen() {
         <View style={{ width: 36 }} />
       </View>
 
+      <Pressable onPress={Keyboard.dismiss} style={{ flex: 1 }}>
       {/* Avatar */}
       <View style={styles.avatarWrap}>
         <View style={[styles.avatar, { backgroundColor: colors.habitSage }]}>
@@ -100,6 +103,7 @@ export default function EditProfileScreen() {
           Email cannot be changed
         </Text>
       </View>
+      </Pressable>
 
       {/* Save button */}
       {hasChanges && (

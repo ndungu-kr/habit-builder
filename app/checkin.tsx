@@ -354,7 +354,7 @@ function HabitReflect({
       <View style={{ height: 50 }} />
       <CIStepHeader current={step} total={totalSteps} onClose={onClose} />
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 20 }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 20 }} keyboardShouldPersistTaps="handled">
         {/* Habit name + status */}
         <View style={{ paddingHorizontal: 24, paddingTop: 24 }}>
           <View style={styles.habitRow}>
@@ -450,7 +450,7 @@ function DailySummary({
       <View style={{ height: 50 }} />
       <CIStepHeader current={totalSteps} total={totalSteps} onClose={onClose} />
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 20 }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 20 }} keyboardShouldPersistTaps="handled">
         <View style={{ paddingHorizontal: 24, paddingTop: 20 }}>
           <Text style={[styles.summaryEyebrow, { color: colors.accent }]}>
             Today's reflection

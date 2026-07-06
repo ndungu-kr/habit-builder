@@ -599,7 +599,7 @@ function StepConfirmation({
   });
 
   return (
-    <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+    <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
       <StepTitle eyebrow="" title="" />
 
       {/* Checkmark + habit name + journey message */}
