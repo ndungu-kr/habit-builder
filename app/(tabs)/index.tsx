@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-import { useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -140,7 +139,7 @@ function SectionLabel({ count }: { count: number }) {
 }
 
 // Individual habit card matching the handoff design
-function HabitCard({
+const HabitCard = React.memo(function HabitCard({
   habit,
   status,
   timesShownUp,
@@ -149,7 +148,7 @@ function HabitCard({
   habit: Habit;
   status: 'unpledged' | 'pledged' | 'completed' | 'partial' | 'skipped';
   timesShownUp: number;
-  onPress: () => void;
+  onPress: (habit: Habit) => void;
 }) {
   const { colors } = useTheme();
 
@@ -157,7 +156,7 @@ function HabitCard({
     <TouchableOpacity
       style={[styles.card, { backgroundColor: colors.surface }]}
       activeOpacity={0.7}
-      onPress={onPress}
+      onPress={() => onPress(habit)}
     >
       <View style={[styles.colorStrip, { backgroundColor: habit.color || colors.accent }]} />
       <View style={styles.cardContent}>
@@ -177,7 +176,7 @@ function HabitCard({
       <StatusCircle state={status} accent={colors.accent} muted={colors.textTertiary} size={30} />
     </TouchableOpacity>
   );
-}
+});
 
 // Progress summary + evening check-in prompt
 function SummaryFooter({
@@ -457,14 +456,14 @@ export default function HomeScreen() {
   }, [pendingMilestone]);
 
   // Only show habits scheduled for today
-  const todaysHabits = habits.filter((habit) => {
+  const todaysHabits = useMemo(() => habits.filter((habit) => {
     if (habit.schedule_type === 'everyday') return true;
     const dayMap: Record<number, string> = {
       0: 'sun', 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat',
     };
     const today = dayMap[new Date().getDay()];
     return habit.scheduled_days?.includes(today as any);
-  });
+  }), [habits]);
 
   // Auto-pledge any new habits created after today's pledge
   useEffect(() => {
@@ -480,13 +479,13 @@ export default function HomeScreen() {
   }, [hasPledgedToday, todaysHabits, todaysPledges]);
 
   // Figure out status for a given habit
-  const getHabitStatus = (habit: Habit) => {
+  const getHabitStatus = useCallback((habit: Habit) => {
     const completion = todaysCompletions.find((c) => c.habit_id === habit.id);
     if (completion) return completion.status as 'completed' | 'partial' | 'skipped';
     const pledge = todaysPledges.find((p) => p.habit_id === habit.id);
     if (pledge) return 'pledged' as const;
     return 'unpledged' as const;
-  };
+  }, [todaysCompletions, todaysPledges]);
 
   // Map status to sheet variant
   const getSheetVariant = (habit: Habit) => {
@@ -497,10 +496,10 @@ export default function HomeScreen() {
     return 'unpledged';
   };
 
-  const openSheet = (habit: Habit) => {
+  const openSheet = useCallback((habit: Habit) => {
     setSelectedHabit(habit);
     setSheetVisible(true);
-  };
+  }, []);
 
   const closeSheet = () => {
     setSheetVisible(false);
@@ -565,7 +564,7 @@ export default function HomeScreen() {
               habit={item}
               status={getHabitStatus(item)}
               timesShownUp={timesShownUp[item.id] ?? 0}
-              onPress={() => openSheet(item)}
+              onPress={openSheet}
             />
           )}
           ListFooterComponent={
