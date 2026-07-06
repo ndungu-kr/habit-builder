@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  Image,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
@@ -157,6 +158,46 @@ const heroStyles = StyleSheet.create({
 // ── Why Card ──
 
 function WhyCard({ why, featured }: { why: HabitWhy; featured: boolean }) {
+  if (why.type === 'image' && why.image_url) {
+    return (
+      <View style={[whyStyles.card, { backgroundColor: why.color, padding: 0 }]}>
+        {featured && (
+          <View style={[whyStyles.starBadge, { zIndex: 2 }]}>
+            <StarIcon />
+          </View>
+        )}
+        <Image
+          source={{ uri: why.image_url }}
+          style={{ width: '100%', height: '100%', borderRadius: 16 }}
+          resizeMode="cover"
+        />
+        {why.caption ? (
+          <View style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            paddingTop: 40,
+            paddingBottom: 14,
+            paddingHorizontal: 14,
+            backgroundColor: 'rgba(0,0,0,0.45)',
+            borderBottomLeftRadius: 16,
+            borderBottomRightRadius: 16,
+          }}>
+            <Text style={{
+              fontFamily: 'Nunito_600SemiBold',
+              fontSize: 13,
+              color: '#fff',
+              lineHeight: 18,
+            }}>
+              {why.caption}
+            </Text>
+          </View>
+        ) : null}
+      </View>
+    );
+  }
+
   return (
     <View style={[whyStyles.card, { backgroundColor: why.color }]}>
       {featured && (

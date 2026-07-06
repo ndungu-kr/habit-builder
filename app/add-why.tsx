@@ -8,11 +8,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Image,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useWhyStore } from '@/stores/whyStore';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Rect, Circle } from 'react-native-svg';
 
 function CloseIcon({ color }: { color: string }) {
   return (
@@ -25,21 +28,39 @@ function CloseIcon({ color }: { color: string }) {
 
 export default function AddWhyScreen() {
   const { colors } = useTheme();
-  const { addWhy } = useWhyStore();
+  const { addWhy, addImageWhy } = useWhyStore();
   const params = useLocalSearchParams<{ habitId: string; habitName: string }>();
   const habitId = params.habitId || '';
   const habitName = params.habitName || 'this habit';
 
+  const [mode, setMode] = useState<'text' | 'image'>('text');
   const [text, setText] = useState('');
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [caption, setCaption] = useState('');
   const [selectedColor, setSelectedColor] = useState(colors.whyCardColors[0]);
   const [saving, setSaving] = useState(false);
 
-  const canSave = text.trim().length > 0;
+  const canSave = mode === 'text' ? text.trim().length > 0 : imageUri !== null;
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setImageUri(result.assets[0].uri);
+    }
+  };
 
   const handleSave = async () => {
     if (!canSave || saving) return;
     setSaving(true);
-    await addWhy(habitId, text.trim(), selectedColor);
+    if (mode === 'text') {
+      await addWhy(habitId, text.trim(), selectedColor);
+    } else {
+      await addImageWhy(habitId, imageUri!, caption.trim(), selectedColor);
+    }
     router.back();
   };
 
@@ -72,30 +93,122 @@ export default function AddWhyScreen() {
           Why does {habitName} matter to you? This will show up when you pledge.
         </Text>
 
-        {/* Preview card */}
-        <View style={[styles.previewCard, { backgroundColor: selectedColor }]}>
-          <Text style={styles.previewQuote}>"</Text>
-          <Text style={styles.previewText}>
-            {text || 'Your why will appear here...'}
-          </Text>
+        {/* Text / Image toggle */}
+        <View style={[styles.modeToggle, { backgroundColor: colors.surface }]}>
+          <TouchableOpacity
+            onPress={() => setMode('text')}
+            style={[
+              styles.modeBtn,
+              mode === 'text' && { backgroundColor: colors.bg },
+            ]}
+          >
+            <Text style={[
+              styles.modeBtnText,
+              { color: mode === 'text' ? colors.textPrimary : colors.textSecondary },
+            ]}>
+              Text
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setMode('image')}
+            style={[
+              styles.modeBtn,
+              mode === 'image' && { backgroundColor: colors.bg },
+            ]}
+          >
+            <Text style={[
+              styles.modeBtnText,
+              { color: mode === 'image' ? colors.textPrimary : colors.textSecondary },
+            ]}>
+              Image
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Text input */}
-        <View style={[styles.inputWrap, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <TextInput
-            style={[styles.input, { color: colors.textPrimary }]}
-            placeholder="e.g. To be calmer and more present for the people I love."
-            placeholderTextColor={colors.textTertiary}
-            multiline
-            maxLength={200}
-            value={text}
-            onChangeText={setText}
-            autoFocus
-          />
-          <Text style={[styles.charCount, { color: colors.textTertiary }]}>
-            {text.length}/200
-          </Text>
-        </View>
+        {mode === 'text' ? (
+          <>
+            {/* Preview card */}
+            <View style={[styles.previewCard, { backgroundColor: selectedColor }]}>
+              <Text style={styles.previewQuote}>"</Text>
+              <Text style={styles.previewText}>
+                {text || 'Your why will appear here...'}
+              </Text>
+            </View>
+
+            {/* Text input */}
+            <View style={[styles.inputWrap, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <TextInput
+                style={[styles.input, { color: colors.textPrimary }]}
+                placeholder="e.g. To be calmer and more present for the people I love."
+                placeholderTextColor={colors.textTertiary}
+                multiline
+                maxLength={200}
+                value={text}
+                onChangeText={setText}
+                autoFocus
+              />
+              <Text style={[styles.charCount, { color: colors.textTertiary }]}>
+                {text.length}/200
+              </Text>
+            </View>
+          </>
+        ) : (
+          <>
+            {/* Image preview or picker */}
+            <TouchableOpacity
+              onPress={pickImage}
+              activeOpacity={0.8}
+              style={[styles.imagePickerCard, { backgroundColor: selectedColor }]}
+            >
+              {imageUri ? (
+                <Image
+                  source={{ uri: imageUri }}
+                  style={styles.imagePreview}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={styles.imagePickerPlaceholder}>
+                  <View style={styles.cameraIconWrap}>
+                    <Svg width={32} height={32} viewBox="0 0 24 24" fill="none">
+                      <Rect x={3} y={6} width={18} height={14} rx={2.5} stroke="#fff" strokeWidth={1.8} />
+                      <Circle cx={12} cy={13.5} r={3.5} stroke="#fff" strokeWidth={1.8} />
+                      <Path d="M9 6l1.5-2h3L15 6" stroke="#fff" strokeWidth={1.8} strokeLinejoin="round" />
+                    </Svg>
+                  </View>
+                  <Text style={styles.imagePickerLabel}>Tap to choose a photo</Text>
+                </View>
+              )}
+              {imageUri && caption ? (
+                <View style={styles.captionOverlay}>
+                  <Text style={styles.captionText}>{caption}</Text>
+                </View>
+              ) : null}
+            </TouchableOpacity>
+
+            {imageUri && (
+              <TouchableOpacity onPress={pickImage} style={{ alignItems: 'center', marginBottom: 16 }}>
+                <Text style={{ fontFamily: 'Nunito_600SemiBold', fontSize: 14, color: colors.accent }}>
+                  Change photo
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Caption input */}
+            <View style={[styles.inputWrap, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <TextInput
+                style={[styles.input, { color: colors.textPrimary, minHeight: 40 }]}
+                placeholder="Add a caption (optional)"
+                placeholderTextColor={colors.textTertiary}
+                maxLength={120}
+                value={caption}
+                onChangeText={setCaption}
+              />
+              <Text style={[styles.charCount, { color: colors.textTertiary }]}>
+                {caption.length}/120
+              </Text>
+            </View>
+          </>
+        )}
 
         {/* Color picker */}
         <Text style={[styles.colorLabel, { color: colors.textSecondary }]}>
@@ -242,6 +355,71 @@ const styles = StyleSheet.create({
   },
   colorSwatchSelected: {
     borderWidth: 3,
+  },
+  modeToggle: {
+    flexDirection: 'row',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 20,
+  },
+  modeBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  modeBtnText: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 14,
+  },
+  imagePickerCard: {
+    borderRadius: 20,
+    minHeight: 260,
+    overflow: 'hidden',
+    marginBottom: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imagePreview: {
+    width: '100%',
+    height: 300,
+  },
+  imagePickerPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    padding: 40,
+  },
+  cameraIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imagePickerLabel: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.75)',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  captionOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingTop: 50,
+    paddingBottom: 18,
+    paddingHorizontal: 20,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  captionText: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 16,
+    color: '#fff',
+    lineHeight: 22,
   },
   footer: {
     paddingHorizontal: 24,

@@ -1,13 +1,14 @@
 import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import { HabitWhy } from '@/types';
-
+import { File } from 'expo-file-system/next';
 interface WhyState {
   whysByHabit: Record<string, HabitWhy[]>;
   isLoading: boolean;
   fetchWhysForHabits: (habitIds: string[]) => Promise<void>;
   addWhy: (habitId: string, textContent: string, color: string) => Promise<void>;
-  deleteWhy: (whyId: string, habitId: string) => Promise<void>;
+  addImageWhy: (habitId: string, imageUri: string, caption: string, color: string) => Promise<void>;
+  deleteWhy: (whyId: string, habitId: string) => Promise<void>;  
   toggleFeatured: (whyId: string, habitId: string) => Promise<void>;
 }
 
@@ -47,6 +48,59 @@ export const useWhyStore = create<WhyState>((set, get) => ({
         habit_id: habitId,
         type: 'text',
         text_content: textContent,
+        color,
+        sort_order: sortOrder,
+        is_featured: isFeatured,
+      })
+      .select()
+      .single();
+
+    if (data) {
+      set({
+        whysByHabit: {
+          ...whysByHabit,
+          [habitId]: [...existing, data],
+        },
+      });
+    }
+  },
+
+    addImageWhy: async (habitId, imageUri, caption, color) => {
+    const { whysByHabit } = get();
+    const existing = whysByHabit[habitId] ?? [];
+    const sortOrder = existing.length;
+    const isFeatured = existing.length === 0;
+
+    // Upload image to Supabase Storage
+    const fileName = `${habitId}/${Date.now()}.jpg`;
+    const file = new File(imageUri);
+    const base64 = await file.base64();
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    const { error: uploadError } = await supabase.storage
+      .from('why-images')
+      .upload(fileName, bytes, { contentType: 'image/jpeg' });
+    if (uploadError) {
+      console.error('Upload failed:', uploadError.message);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('why-images')
+      .getPublicUrl(fileName);
+
+    const { data } = await supabase
+      .from('habit_whys')
+      .insert({
+        habit_id: habitId,
+        type: 'image',
+        text_content: null,
+        image_url: urlData.publicUrl,
+        caption: caption || null,
         color,
         sort_order: sortOrder,
         is_featured: isFeatured,

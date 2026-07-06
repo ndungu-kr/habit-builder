@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/providers/ThemeProvider';
@@ -213,14 +214,50 @@ function PledgeHabit({
           style={[
             styles.whyCard,
             { backgroundColor: displayWhy ? displayWhy.color : placeholderColor },
+            displayWhy?.type === 'image' && { padding: 0 },
           ]}
           onPress={handleWhyCardPress}
           activeOpacity={displayWhy ? 1 : 0.7}
         >
-          <Text style={styles.whyQuote}>"</Text>
-          <Text style={styles.whyCardText}>
-            {displayWhy ? displayWhy.text_content : 'Tap to add your first why'}
-          </Text>
+          {displayWhy?.type === 'image' && displayWhy.image_url ? (
+            <>
+              <Image
+                source={{ uri: displayWhy.image_url }}
+                style={{ width: '100%', height: '100%', borderRadius: 20 }}
+                resizeMode="cover"
+              />
+              {displayWhy.caption ? (
+                <View style={{
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  paddingTop: 50,
+                  paddingBottom: 22,
+                  paddingHorizontal: 24,
+                  backgroundColor: 'rgba(0,0,0,0.45)',
+                  borderBottomLeftRadius: 20,
+                  borderBottomRightRadius: 20,
+                }}>
+                  <Text style={{
+                    fontFamily: 'Nunito_600SemiBold',
+                    fontSize: 17,
+                    color: '#fff',
+                    lineHeight: 23,
+                  }}>
+                    {displayWhy.caption}
+                  </Text>
+                </View>
+              ) : null}
+            </>
+          ) : (
+            <>
+              <Text style={styles.whyQuote}>"</Text>
+              <Text style={styles.whyCardText}>
+                {displayWhy ? displayWhy.text_content : 'Tap to add your first why'}
+              </Text>
+            </>
+          )}
         </TouchableOpacity>
       </View>
 
