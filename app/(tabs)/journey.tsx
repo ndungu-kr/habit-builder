@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import FadeInView from '@/components/FadeInView';
 import OdometerNumber from '@/components/OdometerNumber';
-import { View, Text, ScrollView, StyleSheet, Dimensions } from 'react-native';
+import { useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, Dimensions, Pressable, Modal, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useStreakStore } from '@/stores/streakStore';
 import { useJourneyStore } from '@/stores/journeyStore';
@@ -182,7 +183,7 @@ const mStyles = StyleSheet.create({
 
 type CellKind = 'full' | 'partial' | 'none' | 'rest' | 'freeze';
 
-function HeatmapCell({ kind, size = 18 }: { kind: CellKind; size?: number }) {
+function HeatmapCell({ kind, size = 18, date, onPress }: { kind: CellKind; size?: number; date?: string; onPress?: (date: string) => void }) {
   const { colors } = useTheme();
   const r = 6;
 
@@ -196,7 +197,7 @@ function HeatmapCell({ kind, size = 18 }: { kind: CellKind; size?: number }) {
 
   const s = cellStyles[kind];
 
-  return (
+  const cell = (
     <View style={{
       width: size,
       height: size,
@@ -211,6 +212,11 @@ function HeatmapCell({ kind, size = 18 }: { kind: CellKind; size?: number }) {
       {s.showSnow && <IconSnowflake size={10} color={colors.accent} />}
     </View>
   );
+
+  if (date && onPress) {
+    return <Pressable onPress={() => onPress(date)}>{cell}</Pressable>;
+  }
+  return cell;
 }
 
 function HeatmapLegend() {
@@ -241,13 +247,56 @@ function ActivityHeatmap() {
   const { colors } = useTheme();
   const { heatmapData } = useJourneyStore();
   const weekStart = useProfileStore((s) => s.profile?.week_start_day ?? 'monday');
-  // Shift labels to match whichever day starts the week
   const dayLabels = weekStart === 'sunday'
     ? ['S', 'M', 'T', 'W', 'T', 'F', 'S']
     : ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
+  const [tooltipDate, setTooltipDate] = useState<string | null>(null);
+  const [tooltipKind, setTooltipKind] = useState<CellKind>('none');
+
+  const kindLabels: Record<CellKind, string> = {
+    full: 'All habits completed',
+    partial: 'Partially completed',
+    none: 'Missed',
+    rest: 'Rest day',
+    freeze: 'Streak freeze used',
+  };
+
+  // Compute the start date of the grid to derive each cell's date
+  const today = new Date();
+  const sundayStart = weekStart === 'sunday';
+  const todayDow = sundayStart ? today.getDay() : (today.getDay() + 6) % 7;
+  const gridStart = new Date(today);
+  gridStart.setDate(today.getDate() - todayDow - (12 * 7));
+
+  const getCellDate = (weekIdx: number, dayIdx: number): string => {
+    const d = new Date(gridStart);
+    d.setDate(gridStart.getDate() + weekIdx * 7 + dayIdx);
+    return d.toISOString().split('T')[0];
+  };
+
+  const formatTooltipDate = (dateStr: string): string => {
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  };
+
+  const handleCellPress = (date: string) => {
+    // Find the kind for this date
+    for (let w = 0; w < heatmapData.length; w++) {
+      for (let d = 0; d < heatmapData[w].length; d++) {
+        if (getCellDate(w, d) === date) {
+          setTooltipKind(heatmapData[w][d]);
+          setTooltipDate(date);
+          return;
+        }
+      }
+    }
+  };
+
   return (
-    <View style={[hStyles.card, { backgroundColor: colors.surface }]} accessibilityLabel="Activity heatmap showing last 13 weeks" accessibilityRole="image">
+    <View style={[hStyles.card, { backgroundColor: colors.surface }]} 
+      accessibilityLabel="Activity heatmap showing last 13 weeks" 
+      accessibilityRole="image">
       <View style={hStyles.headerRow}>
         <View>
           <Text style={[hStyles.title, { color: colors.textPrimary }]}>Activity</Text>
@@ -274,7 +323,7 @@ function ActivityHeatmap() {
             {heatmapData.map((week, wi) => (
               <View key={wi} style={hStyles.weekCol}>
                 {week.map((cell, di) => (
-                  <HeatmapCell key={di} kind={cell} size={18} />
+                  <HeatmapCell key={di} kind={cell} size={18} date={getCellDate(wi, di)} onPress={handleCellPress} />
                 ))}
               </View>
             ))}
@@ -282,6 +331,23 @@ function ActivityHeatmap() {
         </ScrollView>
       </View>
       <HeatmapLegend />
+
+      {/* Day tooltip */}
+      <Modal visible={tooltipDate !== null} transparent animationType="fade" onRequestClose={() => setTooltipDate(null)}>
+        <Pressable style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.3)' }} onPress={() => setTooltipDate(null)}>
+          <View style={{ backgroundColor: colors.surface, borderRadius: 16, padding: 20, paddingHorizontal: 24, minWidth: 200, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12, elevation: 8 }}>
+            <Text style={{ fontFamily: 'Nunito_700Bold', fontSize: 15, color: colors.textPrimary, letterSpacing: -0.1 }}>
+              {tooltipDate ? formatTooltipDate(tooltipDate) : ''}
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 }}>
+              <HeatmapCell kind={tooltipKind} size={14} />
+              <Text style={{ fontFamily: 'Nunito_600SemiBold', fontSize: 13.5, color: colors.textSecondary }}>
+                {kindLabels[tooltipKind]}
+              </Text>
+            </View>
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
