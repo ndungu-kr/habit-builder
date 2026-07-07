@@ -9,19 +9,34 @@ import {
   StyleSheet,
   Keyboard,
   Pressable,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useProfileStore } from '@/stores/profileStore';
-import Toast from 'react-native-toast-message';
 import { useAuthStore } from '@/stores/authStore';
+import { supabase } from '@/lib/supabase';
+import Toast from 'react-native-toast-message';
 
 function BackIcon({ color }: { color: string }) {
   return (
     <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
       <Path d="M15 6l-6 6 6 6" stroke={color}
         strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+function CameraIcon({ color }: { color: string }) {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+      <Path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"
+        stroke={color} strokeWidth={1.8} strokeLinejoin="round" />
+      <Path d="M12 17a4 4 0 100-8 4 4 0 000 8z"
+        stroke={color} strokeWidth={1.8} />
     </Svg>
   );
 }
@@ -37,17 +52,76 @@ export default function EditProfileScreen() {
 
   const [name, setName] = useState(originalName);
   const [saving, setSaving] = useState(false);
+  const [avatarUri, setAvatarUri] = useState<string | null>(profile?.avatar_url ?? null);
+  const [avatarChanged, setAvatarChanged] = useState(false);
 
   useEffect(() => {
     if (profile?.name) setName(profile.name);
-  }, [profile?.name]);
+    if (profile?.avatar_url) setAvatarUri(profile.avatar_url);
+  }, [profile?.name, profile?.avatar_url]);
 
-  const hasChanges = name.trim() !== originalName;
+  const hasChanges = name.trim() !== originalName || avatarChanged;
+
+  const pickAvatar = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+    if (result.canceled || !result.assets[0]) return;
+    setAvatarUri(result.assets[0].uri);
+    setAvatarChanged(true);
+  };
 
   const handleSave = async () => {
     if (!hasChanges || saving) return;
     setSaving(true);
-    const error = await updateProfile({ name: name.trim() });
+
+    let newAvatarUrl = profile?.avatar_url ?? null;
+
+    if (avatarChanged && avatarUri) {
+      try {
+        const response = await fetch(avatarUri);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        const base64 = await new Promise<string>((resolve) => {
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(blob);
+        });
+        const base64Data = base64.split(',')[1];
+        const binaryString = atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+
+        const fileName = `avatars/${user?.id}_${Date.now()}.jpg`;
+        const { error: uploadError } = await supabase.storage
+          .from('why-images')
+          .upload(fileName, bytes, { contentType: 'image/jpeg' });
+
+        if (uploadError) {
+          Toast.show({ type: 'error', text1: 'Couldn\'t upload photo', text2: uploadError.message });
+          setSaving(false);
+          return;
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('why-images')
+          .getPublicUrl(fileName);
+        newAvatarUrl = urlData.publicUrl;
+      } catch (e: any) {
+        Toast.show({ type: 'error', text1: 'Couldn\'t upload photo', text2: e.message });
+        setSaving(false);
+        return;
+      }
+    }
+
+    const updates: any = { name: name.trim() };
+    if (avatarChanged) updates.avatar_url = avatarUri ? newAvatarUrl : null;
+
+    const error = await updateProfile(updates);
     if (error) {
       Toast.show({ type: 'error', text1: 'Couldn\'t update profile', text2: error });
       setSaving(false);
@@ -75,15 +149,42 @@ export default function EditProfileScreen() {
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
           Edit profile
         </Text>
-        <View style={{ width: 36 }} />
+        <View style={{ width: 44 }} />
       </View>
 
       <Pressable onPress={Keyboard.dismiss} style={{ flex: 1 }}>
       {/* Avatar */}
       <View style={styles.avatarWrap}>
-        <View style={[styles.avatar, { backgroundColor: colors.habitSage }]}>
-          <Text style={styles.avatarText}>{initial}</Text>
-        </View>
+        <TouchableOpacity onPress={pickAvatar} activeOpacity={0.8} accessibilityLabel="Change profile photo" accessibilityRole="button">
+          {avatarUri ? (
+            <Image
+              source={{ uri: avatarUri }}
+              style={styles.avatar}
+              contentFit="cover"
+              cachePolicy="disk"
+              transition={200}
+            />
+          ) : (
+            <View style={[styles.avatar, { backgroundColor: colors.habitSage }]}>
+              <Text style={styles.avatarText}>{initial}</Text>
+            </View>
+          )}
+          <View style={[styles.cameraBadge, { backgroundColor: colors.accent }]}>
+            <CameraIcon color="#fff" />
+          </View>
+        </TouchableOpacity>
+        {avatarUri && (
+          <TouchableOpacity
+            onPress={() => { setAvatarUri(null); setAvatarChanged(true); }}
+            style={{ marginTop: 10 }}
+            accessibilityLabel="Remove profile photo"
+            accessibilityRole="button"
+          >
+            <Text style={{ fontFamily: 'Nunito_600SemiBold', fontSize: 14, color: colors.missed, letterSpacing: -0.1 }}>
+              Remove photo
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Name field */}
@@ -141,9 +242,9 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -157,15 +258,28 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
   },
   avatar: {
-    width: 80,
-    height: 80,
+    width: 120,
+    height: 120,
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  cameraBadge: {
+    position: 'absolute',
+    bottom: 4,
+    right: 4,
+    width: 38,
+    height: 38,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2.5,
+    borderColor: '#FAF8F5',
   },
   avatarText: {
     fontFamily: 'Nunito_800ExtraBold',
-    fontSize: 32,
+    fontSize: 48,
     color: '#fff',
     letterSpacing: -0.5,
   },

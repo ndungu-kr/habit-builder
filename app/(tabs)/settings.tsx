@@ -18,6 +18,7 @@ import { useHabitStore } from '@/stores/habitStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { Profile } from '@/types';
 import { Svg, Path, Circle, Rect, G } from 'react-native-svg';
+import { Image } from 'expo-image';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 // ─── Inline icons (from handoff) ───
@@ -460,27 +461,41 @@ function ProfileCard({ colors }: { colors: any }) {
         gap: 14,
       }}
     >
-      <View
-        style={{
-          width: 56,
-          height: 56,
-          borderRadius: 999,
-          backgroundColor: colors.habitSage,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Text
+      {profile?.avatar_url ? (
+        <Image
+          source={{ uri: profile.avatar_url }}
           style={{
-            fontFamily: 'Nunito_800ExtraBold',
-            fontSize: 22,
-            color: '#fff',
-            letterSpacing: -0.5,
+            width: 56,
+            height: 56,
+            borderRadius: 999,
+          }}
+          contentFit="cover"
+          cachePolicy="disk"
+          transition={200}
+        />
+      ) : (
+        <View
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: 999,
+            backgroundColor: colors.habitSage,
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
-          {initial}
-        </Text>
-      </View>
+          <Text
+            style={{
+              fontFamily: 'Nunito_800ExtraBold',
+              fontSize: 22,
+              color: '#fff',
+              letterSpacing: -0.5,
+            }}
+          >
+            {initial}
+          </Text>
+        </View>
+      )}
       <View style={{ flex: 1 }}>
         <Text
           style={{
