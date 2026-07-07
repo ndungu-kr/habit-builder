@@ -253,10 +253,12 @@ function SheetUnpledged({
   habit,
   onPledgeFirst,
   onMarkComplete,
+  onViewDetails,
 }: {
   habit: Habit;
   onPledgeFirst: () => void;
   onMarkComplete: () => void;
+  onViewDetails: () => void;
 }) {
   const { colors } = useTheme();
   return (
@@ -282,6 +284,13 @@ function SheetUnpledged({
           sublabel="Skip the pledge, log it as done"
           icon={<IconCheck size={14} color={colors.success} strokeWidth={2.6} />}
           onPress={onMarkComplete}
+        />
+        <SheetOption
+          label="View habit details"
+          sublabel="Whys, history, milestones"
+          icon={<DetailsIcon color={colors.textSecondary} />}
+          chevron
+          onPress={onViewDetails}
           last
         />
       </View>
@@ -296,12 +305,14 @@ function SheetPledged({
   onPartial,
   onSkip,
   onAddNote,
+  onViewDetails,
 }: {
   habit: Habit;
   onMarkComplete: () => void;
   onPartial: () => void;
   onSkip: () => void;
   onAddNote: () => void;
+  onViewDetails: () => void;
 }) {
   const { colors } = useTheme();
   return (
@@ -331,6 +342,13 @@ function SheetPledged({
           sublabel="Capture a thought without changing status"
           icon={<NoteIcon color={colors.textSecondary} />}
           onPress={onAddNote}
+        />
+        <SheetOption
+          label="View habit details"
+          sublabel="Whys, history, milestones"
+          icon={<DetailsIcon color={colors.textSecondary} />}
+          chevron
+          onPress={onViewDetails}
         />
         <SheetOption
           label="Skip today"
@@ -683,6 +701,7 @@ export function HabitBottomSheet({
           habit={habit}
           onPledgeFirst={onPledgeFirst}
           onMarkComplete={handleMarkComplete}
+          onViewDetails={onViewDetails}
         />
       );
       break;
@@ -694,6 +713,7 @@ export function HabitBottomSheet({
           onPartial={() => setInternalVariant('partial')}
           onSkip={onSkip}
           onAddNote={() => setInternalVariant('note')}
+          onViewDetails={onViewDetails}
         />
       );
       break;

@@ -3,6 +3,7 @@ import FadeInView from '@/components/FadeInView';
 import OdometerNumber from '@/components/OdometerNumber';
 import { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, Dimensions, Pressable, Modal, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useStreakStore } from '@/stores/streakStore';
 import { useJourneyStore } from '@/stores/journeyStore';
@@ -461,17 +462,19 @@ function Sparkline({ color, data }: { color: string; data: number[] }) {
 // ── Habit Progress Card ──
 
 function HabitProgressCard({
-  name, accent, timesShownUp, rate, sparkline,
+  name, accent, timesShownUp, rate, sparkline, onPress,
 }: {
-  name: string; accent: string; timesShownUp: number; rate: number; sparkline: number[];
+  name: string; accent: string; timesShownUp: number; rate: number; sparkline: number[]; onPress?: () => void;
 }) {
   const { colors } = useTheme();
 
   return (
-    <View
+    <TouchableOpacity
       style={[pStyles.card, { backgroundColor: colors.surface }]}
       accessibilityLabel={`${name}: ${timesShownUp} times shown up, ${rate}% completion rate`}
-      accessibilityRole="text"
+      accessibilityRole="button"
+      onPress={onPress}
+      activeOpacity={0.7}
     >
       <View style={[pStyles.strip, { backgroundColor: accent }]} />
       <View style={pStyles.content}>
@@ -492,7 +495,7 @@ function HabitProgressCard({
         </View>
       </View>
       <Sparkline color={accent} data={sparkline} />
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -618,6 +621,7 @@ export default function JourneyScreen() {
   const {
     lifetimeDays, weeklyRate, habitProgress, milestones, isLoading, fetchJourneyData,
   } = useJourneyStore();
+  const router = useRouter();
 
   useEffect(() => {
     fetchStreak();
@@ -680,6 +684,10 @@ export default function JourneyScreen() {
                   timesShownUp={h.timesShownUp}
                   rate={h.completionRate}
                   sparkline={h.sparkline}
+                  onPress={() => router.push({
+                    pathname: '/habit-detail',
+                    params: { habitId: h.habitId, habitName: h.name, habitColor: h.color },
+                  })}
                 />
               ))}
             </View>
