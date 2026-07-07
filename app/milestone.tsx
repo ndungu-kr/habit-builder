@@ -1,8 +1,10 @@
-import { View, Text, StyleSheet, Pressable, ScrollView, Animated, Easing, AccessibilityInfo } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Animated, Easing, AccessibilityInfo, Alert } from 'react-native';
 import { useEffect, useRef } from 'react';
 import FadeInView from '@/components/FadeInView';
 import AnimatedPressable from '@/components/AnimatedPressable';
 import { useLocalSearchParams, router } from 'expo-router';
+import { captureRef } from 'react-native-view-shot';
+import * as Sharing from 'expo-sharing';
 import { useTheme } from '@/providers/ThemeProvider';
 import { typography } from '@/theme/typography';
 import { layout, spacing } from '@/theme/spacing';
@@ -172,6 +174,26 @@ function FreezeEarnedNote({ colors, freezeCount }: { colors: any; freezeCount: n
 
 export default function MilestoneScreen() {
   const { colors } = useTheme();
+  const viewShotRef = useRef<any>(null);
+
+  const handleSave = async () => {
+    try {
+      const uri = await captureRef(viewShotRef, { format: 'png', quality: 1 });
+      await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Save milestone' });
+    } catch {
+      Alert.alert('Error', 'Could not save milestone.');
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      const uri = await captureRef(viewShotRef, { format: 'png', quality: 1 });
+      await Sharing.shareAsync(uri);
+    } catch {
+      Alert.alert('Error', 'Could not share milestone.');
+    }
+  };
+
   const params = useLocalSearchParams<{
     type: 'streak' | 'habit';
     count: string;
@@ -252,6 +274,7 @@ export default function MilestoneScreen() {
       }]} />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <View ref={viewShotRef} collapsable={false} style={{ backgroundColor: colors.bg === '#1C1A18' ? '#221F1C' : '#FBF6EE' }}>
         {/* Header */}
         <View style={styles.header}>
           <View style={{ width: 44 }} />
@@ -300,16 +323,17 @@ export default function MilestoneScreen() {
         )}
 
         <View style={{ flex: 1, minHeight: 40 }} />
+        </View>
       </ScrollView>
 
       {/* Action row */}
       <FadeInView delay={700}>
         <View style={styles.actionRow}>
-          <AnimatedPressable scaleValue={0.93} style={[styles.actionBtn, { backgroundColor: colors.surface }]}>
+          <AnimatedPressable scaleValue={0.93} style={[styles.actionBtn, { backgroundColor: colors.surface }]} onPress={handleSave}>
             <SaveIcon color={colors.textPrimary} />
             <Text style={[styles.actionLabel, { color: colors.textPrimary }]}>Save</Text>
           </AnimatedPressable>
-          <AnimatedPressable scaleValue={0.93} style={[styles.actionBtn, { backgroundColor: colors.surface }]}>
+          <AnimatedPressable scaleValue={0.93} style={[styles.actionBtn, { backgroundColor: colors.surface }]} onPress={handleShare}>
             <ShareIcon color={colors.textPrimary} />
             <Text style={[styles.actionLabel, { color: colors.textPrimary }]}>Share</Text>
           </AnimatedPressable>
