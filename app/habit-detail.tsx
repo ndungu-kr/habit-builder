@@ -461,6 +461,7 @@ export default function HabitDetailScreen() {
 
   const { whysByHabit, fetchWhysForHabits, reorderWhys } = useWhyStore();
   const { stats, milestones, journal, fetchHabitDetail } = useHabitDetailStore();
+  const [journalFilter, setJournalFilter] = useState<string | null>(null);
   const { deleteHabit, archiveHabit } = useHabitStore();
 
   const whys = whysByHabit[habitId] ?? [];
@@ -697,8 +698,39 @@ export default function HabitDetailScreen() {
         {journal.length > 0 && (
           <View style={{ marginTop: 28 }}>
             <SectionHeader label="Reflection journal" />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 10, paddingHorizontal: 24 }} contentContainerStyle={{ gap: 8 }}>
+              {[
+                { key: null, label: 'All' },
+                { key: 'completed', label: 'Completed' },
+                { key: 'partial', label: 'Partial' },
+                { key: 'skipped', label: 'Skipped' },
+                { key: 'missed', label: 'Missed' },
+              ].map((f) => (
+                <TouchableOpacity
+                  key={f.key ?? 'all'}
+                  onPress={() => setJournalFilter(f.key)}
+                  style={{
+                    paddingVertical: 6,
+                    paddingHorizontal: 14,
+                    borderRadius: 999,
+                    backgroundColor: journalFilter === f.key ? colors.accent : colors.surface,
+                  }}
+                >
+                  <Text style={{
+                    fontFamily: 'Nunito_700Bold',
+                    fontSize: 12,
+                    color: journalFilter === f.key ? '#fff' : colors.textSecondary,
+                    letterSpacing: 0.3,
+                  }}>
+                    {f.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
             <View style={styles.journalList}>
-              {journal.map((j) => (
+              {journal
+                .filter((j) => !journalFilter || j.status === journalFilter)
+                .map((j) => (
                 <JournalEntry
                   key={j.id}
                   dateLabel={j.dateLabel}
@@ -708,6 +740,11 @@ export default function HabitDetailScreen() {
                   partialNote={j.partialNote}
                 />
               ))}
+              {journal.filter((j) => !journalFilter || j.status === journalFilter).length === 0 && (
+                <Text style={{ fontFamily: 'Nunito_500Medium', fontSize: 14, color: colors.textTertiary, textAlign: 'center', paddingVertical: 20 }}>
+                  No entries match this filter
+                </Text>
+              )}
             </View>
           </View>
         )}
