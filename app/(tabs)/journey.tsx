@@ -333,7 +333,7 @@ function ActivityHeatmap() {
       <HeatmapLegend />
 
       {/* Day tooltip */}
-      <Modal visible={tooltipDate !== null} transparent animationType="fade" onRequestClose={() => setTooltipDate(null)}>
+      <Modal visible={tooltipDate !== null} transparent animationType="none" onRequestClose={() => setTooltipDate(null)}>
         <Pressable style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.3)' }} onPress={() => setTooltipDate(null)}>
           <View style={{ backgroundColor: colors.surface, borderRadius: 16, padding: 20, paddingHorizontal: 24, minWidth: 200, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12, elevation: 8 }}>
             <Text style={{ fontFamily: 'Nunito_700Bold', fontSize: 15, color: colors.textPrimary, letterSpacing: -0.1 }}>
