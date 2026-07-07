@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import FadeInView from '@/components/FadeInView';
+import OdometerNumber from '@/components/OdometerNumber';
 import { View, Text, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useStreakStore } from '@/stores/streakStore';
@@ -60,9 +61,7 @@ function StreakOverviewCard() {
         </Text>
       </View>
       <View style={oStyles.valueRow}>
-        <Text style={[oStyles.bigNumber, { color: colors.accent }]}>
-          {currentStreak}
-        </Text>
+        <OdometerNumber value={currentStreak} style={[oStyles.bigNumber, { color: colors.accent }]} />
         <Text style={[oStyles.unit, { color: colors.textSecondary }]}>days</Text>
       </View>
       <View style={[oStyles.freezePill, { backgroundColor: colors.bg }]}>

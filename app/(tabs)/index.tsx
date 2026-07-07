@@ -32,6 +32,7 @@ import Svg, { Path } from 'react-native-svg';
 import Toast from 'react-native-toast-message';
 import AnimatedPressable from '@/components/AnimatedPressable';
 import FadeInView from '@/components/FadeInView';
+import OdometerNumber from '@/components/OdometerNumber';
 
 // Returns greeting based on time of day
 function getGreeting(): string {
@@ -73,7 +74,7 @@ function TopBar() {
         {showStreak && (
           <View style={[styles.streakBadge, { backgroundColor: colors.accentSoft }]}>
             <IconFlame size={18} color={colors.accent} />
-            <Text style={[styles.streakText, { color: colors.accent }]}>{currentStreak}</Text>
+            <OdometerNumber value={currentStreak} style={[styles.streakText, { color: colors.accent }]} />
           </View>
         )}
         <View style={[styles.freezeBadge, { borderColor: colors.border }]}>
