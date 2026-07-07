@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import FadeInView from '@/components/FadeInView';
 import { View, Text, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useStreakStore } from '@/stores/streakStore';
@@ -566,7 +567,10 @@ export default function JourneyScreen() {
 
         {/* Overview cards */}
         <View style={styles.overviewSection}>
-          <StreakOverviewCard />
+          <FadeInView delay={0}>
+            <StreakOverviewCard />
+          </FadeInView>
+          <FadeInView delay={100}>
           <View style={styles.miniRow}>
             <MiniOverview
               label="Lifetime"
@@ -579,15 +583,19 @@ export default function JourneyScreen() {
               sub="Completion rate"
             />
           </View>
+          </FadeInView>
         </View>
 
         {/* Heatmap */}
-        <View style={styles.heatmapSection}>
-          <ActivityHeatmap />
-        </View>
+        <FadeInView delay={200}>
+          <View style={styles.heatmapSection}>
+            <ActivityHeatmap />
+          </View>
+        </FadeInView>
 
         {/* Habits */}
         {habitProgress.length > 0 && (
+          <FadeInView delay={300}>
           <View style={styles.habitsSection}>
             <SectionHeader label="Your habits" />
             <View style={styles.habitList}>
@@ -603,10 +611,12 @@ export default function JourneyScreen() {
               ))}
             </View>
           </View>
+          </FadeInView>
         )}
 
         {/* Milestones */}
         {milestones.length > 0 && (
+          <FadeInView delay={400}>
           <View style={styles.milestonesSection}>
             <SectionHeader
               label={`Milestones \u00B7 ${milestones.length} earned`}
@@ -624,6 +634,7 @@ export default function JourneyScreen() {
               ))}
             </View>
           </View>
+          </FadeInView>
         )}
       </ScrollView>
     </View>

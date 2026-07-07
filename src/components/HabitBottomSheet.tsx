@@ -10,6 +10,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Animated,
+  Easing,
+  AccessibilityInfo,
   Dimensions,
   PanResponder,
 } from 'react-native';
@@ -437,6 +439,39 @@ function SheetCompleted({
     hour12: true,
   });
 
+  const pulseScale = useRef(new Animated.Value(0.6)).current;
+  const pulseOpacity = useRef(new Animated.Value(0)).current;
+  const checkScale = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
+      if (enabled) {
+        checkScale.setValue(1);
+        return;
+      }
+      // Checkmark bounces in
+      Animated.spring(checkScale, {
+        toValue: 1,
+        useNativeDriver: true,
+        damping: 8,
+        stiffness: 150,
+        mass: 0.6,
+        delay: 200,
+      }).start();
+      // Subtle pulse ring
+      Animated.loop(
+        Animated.sequence([
+          Animated.parallel([
+            Animated.timing(pulseScale, { toValue: 1.5, duration: 1200, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+            Animated.timing(pulseOpacity, { toValue: 0.3, duration: 300, useNativeDriver: true }),
+          ]),
+          Animated.timing(pulseOpacity, { toValue: 0, duration: 900, useNativeDriver: true }),
+          Animated.timing(pulseScale, { toValue: 0.6, duration: 0, useNativeDriver: true }),
+        ]),
+      ).start();
+    });
+  }, []);
+
   return (
     <>
       <SheetHabitHeader
@@ -449,8 +484,11 @@ function SheetCompleted({
         }
       />
       <View style={styles.completedCenter}>
-        <View style={[styles.completedCircle, { backgroundColor: 'rgba(125, 166, 138, 0.16)' }]}>
-          <IconCheck size={28} color={colors.success} strokeWidth={2.8} />
+        <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+          <Animated.View style={[styles.completedCircle, { backgroundColor: colors.success, position: 'absolute', opacity: pulseOpacity, transform: [{ scale: pulseScale }] }]} />
+          <Animated.View style={[styles.completedCircle, { backgroundColor: 'rgba(125, 166, 138, 0.16)', transform: [{ scale: checkScale }] }]}>
+            <IconCheck size={28} color={colors.success} strokeWidth={2.8} />
+          </Animated.View>
         </View>
         <Text style={[styles.completedTitle, { color: colors.textPrimary }]}>
           You showed up today.

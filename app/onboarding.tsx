@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import FadeInView from '@/components/FadeInView';
+import AnimatedPressable from '@/components/AnimatedPressable';
 import {
   View,
   Text,
@@ -67,13 +69,13 @@ function OnbCTA({
   }
 
   return (
-    <TouchableOpacity
+    <AnimatedPressable
+      scaleValue={0.96}
       onPress={onPress}
       style={[styles.primaryCta, { backgroundColor: colors.accent }]}
-      activeOpacity={0.85}
     >
       <Text style={styles.primaryCtaText}>{label}</Text>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 
@@ -178,14 +180,21 @@ function StepWelcome({ onNext }: { onNext: () => void }) {
         <View style={[styles.haloInner, { backgroundColor: colors.accent }]} />
 
         <View style={styles.welcomeTextBlock}>
-          <Text style={[styles.eyebrow, { color: colors.accent }]}>Habit Builder</Text>
-          <Text style={[styles.welcomeHeadline, { color: colors.textPrimary }]}>
-            Build something meaningful.
-          </Text>
-          <Text style={[styles.welcomeBody, { color: colors.textSecondary }]}>
-            The same tools that help people overcome their hardest challenges, applied to the
-            habits you want to build.
-          </Text>
+          <FadeInView delay={0}>
+            <Text style={[styles.eyebrow, { color: colors.accent }]}>Habit Builder</Text>
+          </FadeInView>
+          <FadeInView delay={150}>
+            <Text style={[styles.welcomeHeadline, { color: colors.textPrimary }]}>
+              Build something meaningful.
+            </Text>
+          </FadeInView>
+          <FadeInView delay={300}>
+            <Text style={[styles.welcomeBody, { color: colors.textSecondary }]}>
+              The same tools that help people overcome their hardest challenges, applied to the
+              habits you want to build.
+            </Text>
+          </FadeInView>
+          <FadeInView delay={450}>
           <View style={styles.featureDots}>
             <Text style={[styles.featureDotText, { color: colors.textTertiary }]}>
               Daily pledges
@@ -199,6 +208,7 @@ function StepWelcome({ onNext }: { onNext: () => void }) {
               Real progress
             </Text>
           </View>
+          </FadeInView>
         </View>
       </View>
 
@@ -260,17 +270,24 @@ function StepIdentity({ onCreateHabit }: { onCreateHabit: () => void }) {
       <OnbProgress current={2} />
 
       <View style={{ paddingHorizontal: 32, paddingTop: 36 }}>
-        <Text style={[styles.eyebrow, { color: colors.accent }]}>The shift</Text>
-        <Text style={[styles.stepHeadline, { color: colors.textPrimary }]}>
-          Who do you want to become?
-        </Text>
-        <Text style={[styles.stepBody, { color: colors.textSecondary }]}>
-          Most apps track what you do. This one helps you become who you want to be - by
-          repeating a small daily loop.
-        </Text>
+        <FadeInView delay={0}>
+          <Text style={[styles.eyebrow, { color: colors.accent }]}>The shift</Text>
+        </FadeInView>
+        <FadeInView delay={150}>
+          <Text style={[styles.stepHeadline, { color: colors.textPrimary }]}>
+            Who do you want to become?
+          </Text>
+        </FadeInView>
+        <FadeInView delay={300}>
+          <Text style={[styles.stepBody, { color: colors.textSecondary }]}>
+            Most apps track what you do. This one helps you become who you want to be - by
+            repeating a small daily loop.
+          </Text>
+        </FadeInView>
       </View>
 
       {/* Loop diagram */}
+      <FadeInView delay={450}>
       <View style={[styles.loopCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.loopCardLabel, { color: colors.textTertiary }]}>
           Every scheduled day
@@ -305,6 +322,7 @@ function StepIdentity({ onCreateHabit }: { onCreateHabit: () => void }) {
           </Text>
         </View>
       </View>
+      </FadeInView>
 
       <View style={{ flex: 1 }} />
 

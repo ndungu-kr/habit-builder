@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import FadeInView from '@/components/FadeInView';
+import AnimatedPressable from '@/components/AnimatedPressable';
 import {
   View,
   Text,
@@ -64,7 +66,8 @@ function MDPrimaryCTA({
   const { colors } = useTheme();
 
   return (
-    <TouchableOpacity
+    <AnimatedPressable
+      scaleValue={0.96}
       style={[
         styles.primaryCta,
         {
@@ -73,7 +76,6 @@ function MDPrimaryCTA({
         },
       ]}
       onPress={onPress}
-      activeOpacity={0.85}
     >
       <Text
         style={[
@@ -99,7 +101,7 @@ function MDPrimaryCTA({
           {sub}
         </Text>
       )}
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 
@@ -170,15 +172,21 @@ function MissedAcknowledge({
       <MDStepHeader current={1} total={3} />
 
       <View style={{ paddingHorizontal: 24, paddingTop: 24 }}>
-        <Text style={[styles.eyebrow, { color: colors.missed }]}>
-          Yesterday - {dateStr}
-        </Text>
-        <Text style={[styles.title, { color: colors.textPrimary }]}>
-          Yesterday didn't go as planned.
-        </Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          Everyone misses days. What matters is that you're here now.
-        </Text>
+        <FadeInView delay={0}>
+          <Text style={[styles.eyebrow, { color: colors.missed }]}>
+            Yesterday - {dateStr}
+          </Text>
+        </FadeInView>
+        <FadeInView delay={150}>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>
+            Yesterday didn't go as planned.
+          </Text>
+        </FadeInView>
+        <FadeInView delay={300}>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+            Everyone misses days. What matters is that you're here now.
+          </Text>
+        </FadeInView>
       </View>
 
       {/* What was missed */}
@@ -290,20 +298,25 @@ function MissedFreezeUsed({
 
       <View style={styles.centerContent}>
         {/* Snowflake medallion */}
+        <FadeInView delay={0} slideDistance={0}>
         <View style={[styles.medallionOuter, { backgroundColor: colors.accentSoft }]}>
           <View style={[styles.medallionInner, { backgroundColor: colors.surface, borderColor: colors.accent }]}>
             <IconSnowflake size={38} color={colors.accent} />
           </View>
         </View>
+        </FadeInView>
 
+        <FadeInView delay={200}>
         <Text style={[styles.bigTitle, { color: colors.textPrimary }]}>
           Your streak holds at {streakValue}.
         </Text>
         <Text style={[styles.bigSub, { color: colors.textSecondary }]}>
           The freeze holds your streak in place because you didn't do the work yesterday. Today, let's pick back up.
         </Text>
+        </FadeInView>
 
         {/* Balance card */}
+        <FadeInView delay={400}>
         <View style={[styles.balanceCard, { backgroundColor: colors.surface }]}>
           <View style={[styles.balanceLeft, { borderRightColor: colors.border }]}>
             <IconFlame size={18} color={colors.accent} />
@@ -316,6 +329,7 @@ function MissedFreezeUsed({
             </Text>
           </View>
         </View>
+        </FadeInView>
       </View>
 
       <View style={[styles.footer, { borderTopColor: colors.border }]}>
@@ -351,18 +365,23 @@ function MissedReset({ onContinue }: { onContinue: () => void }) {
       <MDStepHeader current={2} total={3} />
 
       <View style={styles.centerContent}>
-        <View style={[styles.sunriseCircle, { backgroundColor: colors.accent }]}>
-          <SunriseIcon />
-        </View>
+        <FadeInView delay={0} slideDistance={0}>
+          <View style={[styles.sunriseCircle, { backgroundColor: colors.accent }]}>
+            <SunriseIcon />
+          </View>
+        </FadeInView>
 
+        <FadeInView delay={200}>
         <Text style={[styles.bigTitle, { color: colors.textPrimary }]}>
           Today is Day 1 of something new.
         </Text>
         <Text style={[styles.bigSub, { color: colors.textSecondary }]}>
           Your streak resets, but what you've built doesn't go away.
         </Text>
+        </FadeInView>
 
         {/* Lifetime stats card */}
+        <FadeInView delay={400}>
         <View style={[styles.lifetimeCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.lifetimeLabel, { color: colors.textSecondary }]}>
             What stays with you
@@ -376,6 +395,7 @@ function MissedReset({ onContinue }: { onContinue: () => void }) {
             </View>
           </View>
         </View>
+        </FadeInView>
       </View>
 
       <View style={[styles.footer, { borderTopColor: colors.border }]}>
