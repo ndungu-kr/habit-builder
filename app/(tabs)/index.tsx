@@ -72,12 +72,20 @@ function TopBar() {
       </View>
       <View style={styles.badges}>
         {showStreak && (
-          <View style={[styles.streakBadge, { backgroundColor: colors.accentSoft }]}>
+          <View
+            style={[styles.streakBadge, { backgroundColor: colors.accentSoft }]}
+            accessibilityLabel={`Current streak: ${currentStreak} days`}
+            accessibilityRole="text"
+          >
             <IconFlame size={18} color={colors.accent} />
             <OdometerNumber value={currentStreak} style={[styles.streakText, { color: colors.accent }]} />
           </View>
         )}
-        <View style={[styles.freezeBadge, { borderColor: colors.border }]}>
+        <View
+          style={[styles.freezeBadge, { borderColor: colors.border }]}
+          accessibilityLabel={`${freezes} of 3 streak freezes available`}
+          accessibilityRole="text"
+        >
           <IconSnowflake size={11} color={colors.textSecondary} />
           <Text style={[styles.freezeText, { color: colors.textSecondary }]}>
             {freezes}/3
@@ -97,6 +105,8 @@ function PledgeBanner({ onPress }: { onPress: () => void }) {
       style={[styles.pledgeBanner, { backgroundColor: colors.accent }]}
       onPress={onPress}
       scaleValue={0.95}
+      accessibilityLabel="Make today's pledge. Set your intention for today."
+      accessibilityRole="button"
     >
       <View style={{ flex: 1 }}>
         <Text style={styles.pledgeBannerTitle}>Make today's pledge</Text>
@@ -159,6 +169,8 @@ const HabitCard = React.memo(function HabitCard({
     <AnimatedPressable
       style={[styles.card, { backgroundColor: colors.surface }]}
       onPress={() => onPress(habit)}
+      accessibilityLabel={`${habit.name}, ${habit.goal_value} ${habit.goal_unit}, ${timesShownUp} times shown up, ${status === 'completed' ? 'Completed' : status === 'partial' ? 'Partially completed' : status === 'pledged' ? 'Pledged' : status === 'skipped' ? 'Skipped' : 'Not pledged'}`}
+      accessibilityRole="button"
     >
       <View style={[styles.colorStrip, { backgroundColor: habit.color || colors.accent }]} />
       <View style={styles.cardContent}>
@@ -219,6 +231,8 @@ function SummaryFooter({
         <AnimatedPressable
           style={[styles.checkInPrompt, { borderTopColor: colors.border }]}
           onPress={onCheckIn}
+          accessibilityLabel="Ready to reflect on your day? Begin tonight's check-in."
+          accessibilityRole="button"
         >
           <View style={{ flex: 1 }}>
             <Text style={[styles.checkInTitle, { color: colors.textPrimary }]}>
@@ -370,6 +384,8 @@ function PlusFAB({ onPress }: { onPress: () => void }) {
       style={[styles.fab, { backgroundColor: colors.accent }]}
       onPress={onPress}
       scaleValue={0.9}
+      accessibilityLabel="Create new habit"
+      accessibilityRole="button"
     >
       <IconPlus size={26} color="#fff" strokeWidth={2.4} />
     </AnimatedPressable>

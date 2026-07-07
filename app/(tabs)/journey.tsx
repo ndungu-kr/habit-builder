@@ -52,7 +52,11 @@ function StreakOverviewCard() {
   const freezes = streak?.freezes_available ?? 0;
 
   return (
-    <View style={[oStyles.card, { backgroundColor: colors.surface }]}>
+    <View
+      style={[oStyles.card, { backgroundColor: colors.surface }]}
+      accessibilityLabel={`Unified streak: ${currentStreak} days, ${freezes} of 3 freezes banked`}
+      accessibilityRole="summary"
+    >
       <View style={[oStyles.decorRing, { backgroundColor: colors.accentSoft }]} />
       <View style={oStyles.headerRow}>
         <IconFlame size={20} color={colors.accent} />
@@ -243,7 +247,7 @@ function ActivityHeatmap() {
     : ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
   return (
-    <View style={[hStyles.card, { backgroundColor: colors.surface }]}>
+    <View style={[hStyles.card, { backgroundColor: colors.surface }]} accessibilityLabel="Activity heatmap showing last 13 weeks" accessibilityRole="image">
       <View style={hStyles.headerRow}>
         <View>
           <Text style={[hStyles.title, { color: colors.textPrimary }]}>Activity</Text>
@@ -398,7 +402,11 @@ function HabitProgressCard({
   const { colors } = useTheme();
 
   return (
-    <View style={[pStyles.card, { backgroundColor: colors.surface }]}>
+    <View
+      style={[pStyles.card, { backgroundColor: colors.surface }]}
+      accessibilityLabel={`${name}: ${timesShownUp} times shown up, ${rate}% completion rate`}
+      accessibilityRole="text"
+    >
       <View style={[pStyles.strip, { backgroundColor: accent }]} />
       <View style={pStyles.content}>
         <Text style={[pStyles.name, { color: colors.textPrimary }]}>{name}</Text>

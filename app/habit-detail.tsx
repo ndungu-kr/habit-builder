@@ -532,12 +532,16 @@ export default function HabitDetailScreen() {
         <TouchableOpacity
           style={[styles.navBtn, { backgroundColor: colors.surface }]}
           onPress={() => router.back()}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
         >
           <BackIcon color={colors.textSecondary} />
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
         <TouchableOpacity
           style={[styles.navBtn, { backgroundColor: colors.surface }]}
+          accessibilityLabel="Edit habit"
+          accessibilityRole="button"
           onPress={() => router.push({
             pathname: '/edit-habit',
             params: {
@@ -756,7 +760,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingTop: 64, paddingBottom: 12, gap: 10,
   },
   navBtn: {
-    width: 36, height: 36, borderRadius: 18,
+    width: 44, height: 44, borderRadius: 22,
     alignItems: 'center', justifyContent: 'center',
   },
   scrollContent: { paddingBottom: 60 },

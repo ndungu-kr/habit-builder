@@ -323,7 +323,7 @@ function SRow({
   );
 
   if (onPress) {
-    return <TouchableOpacity onPress={onPress}>{content}</TouchableOpacity>;
+    return <TouchableOpacity onPress={onPress} accessibilityRole="button">{content}</TouchableOpacity>;
   }
   return content;
 }

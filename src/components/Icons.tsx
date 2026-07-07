@@ -113,6 +113,13 @@ interface StatusCircleProps {
 }
 
 export function StatusCircle({ state, accent, muted, size = 30 }: StatusCircleProps) {
+  const stateLabels: Record<string, string> = {
+    unpledged: 'Not pledged',
+    pledged: 'Pledged',
+    completed: 'Completed',
+    partial: 'Partially completed',
+    skipped: 'Skipped',
+  };
   const sw = 2;
   const r = (size - sw) / 2;
   const cx = size / 2;
@@ -120,7 +127,7 @@ export function StatusCircle({ state, accent, muted, size = 30 }: StatusCirclePr
 
   if (state === 'unpledged') {
     return (
-      <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} accessibilityLabel={stateLabels[state]}>
         <Circle cx={cx} cy={cy} r={r} stroke={muted} strokeWidth={sw}
           fill="none" strokeDasharray="3 3" />
       </Svg>
@@ -129,7 +136,7 @@ export function StatusCircle({ state, accent, muted, size = 30 }: StatusCirclePr
 
   if (state === 'pledged') {
     return (
-      <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} accessibilityLabel={stateLabels[state]}>
         <Circle cx={cx} cy={cy} r={r} stroke={accent} strokeWidth={sw} fill="none" />
       </Svg>
     );
@@ -137,7 +144,7 @@ export function StatusCircle({ state, accent, muted, size = 30 }: StatusCirclePr
 
   if (state === 'completed') {
     return (
-      <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} accessibilityLabel={stateLabels[state]}>
         <Circle cx={cx} cy={cy} r={r + sw / 2} fill={accent} />
         <Path d={`M${cx - 6} ${cy} l4 4 l8 -8`} stroke="#fff" strokeWidth={2.4}
           strokeLinecap="round" strokeLinejoin="round" fill="none" />
@@ -147,7 +154,7 @@ export function StatusCircle({ state, accent, muted, size = 30 }: StatusCirclePr
 
   if (state === 'partial') {
     return (
-      <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} accessibilityLabel={stateLabels[state]}>
         <Circle cx={cx} cy={cy} r={r} stroke={accent} strokeWidth={sw} fill="none" />
         <Path d={`M${cx} ${cy - r} A ${r} ${r} 0 0 1 ${cx} ${cy + r} Z`} fill={accent} />
       </Svg>
@@ -156,10 +163,9 @@ export function StatusCircle({ state, accent, muted, size = 30 }: StatusCirclePr
 
   // skipped
   return (
-    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} accessibilityLabel={stateLabels[state]}>
       <Circle cx={cx} cy={cy} r={r} stroke={muted} strokeWidth={sw} fill="none" />
-      <Path d={`M${cx - 5} ${cy} l10 0`} stroke={muted} strokeWidth={2}
-        strokeLinecap="round" />
+      <Path d={`M${cx - 5} ${cy} l10 0`} stroke={muted} strokeWidth={2} strokeLinecap="round" />
     </Svg>
   );
 }

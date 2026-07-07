@@ -41,7 +41,7 @@ interface HabitBottomSheetProps {
 function SheetHandle() {
   const { colors } = useTheme();
   return (
-    <View style={styles.handleRow}>
+    <View style={styles.handleRow} accessibilityLabel="Drag handle, swipe down to close" accessibilityRole="adjustable">
       <View style={[styles.handle, { backgroundColor: colors.textTertiary }]} />
     </View>
   );
@@ -225,6 +225,8 @@ function ValueStepper({
       <TouchableOpacity
         style={[styles.stepperBtn, { backgroundColor: colors.bg }]}
         onPress={() => onChange(Math.max(0, value - 1))}
+        accessibilityLabel={`Decrease to ${Math.max(0, value - 1)} ${unit}`}
+        accessibilityRole="button"
       >
         <Text style={[styles.stepperBtnText, { color: colors.textPrimary }]}>-</Text>
       </TouchableOpacity>
@@ -237,6 +239,8 @@ function ValueStepper({
       <TouchableOpacity
         style={[styles.stepperBtn, { backgroundColor: colors.bg }]}
         onPress={() => onChange(value + 1)}
+        accessibilityLabel={`Increase to ${value + 1} ${unit}`}
+        accessibilityRole="button"
       >
         <Text style={[styles.stepperBtnText, { color: colors.textPrimary }]}>+</Text>
       </TouchableOpacity>
@@ -723,7 +727,7 @@ export function HabitBottomSheet({
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.backdrop}>
           <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.45)', opacity: backdropAnim }]}>
-            <Pressable style={{ flex: 1 }} onPress={onClose} />
+            <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityLabel="Close bottom sheet" accessibilityRole="button" />
           </Animated.View>
           <Animated.View style={[styles.sheet, { backgroundColor: colors.bg, transform: [{ translateY: slideAnim }] }]}>
             <View {...panResponder.panHandlers} style={styles.dragZone}>
@@ -935,8 +939,8 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   stepperBtn: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',

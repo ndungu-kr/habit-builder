@@ -216,6 +216,8 @@ export default function HabitsManageScreen() {
         {/* Back button */}
         <TouchableOpacity
           onPress={() => router.back()}
+          accessibilityLabel="Back to settings"
+          accessibilityRole="button"
           style={{
             paddingHorizontal: 24,
             paddingVertical: 14,
@@ -226,8 +228,8 @@ export default function HabitsManageScreen() {
         >
           <View
             style={{
-              width: 36,
-              height: 36,
+              width: 44,
+              height: 44,
               borderRadius: 999,
               backgroundColor: colors.surface,
               alignItems: 'center',

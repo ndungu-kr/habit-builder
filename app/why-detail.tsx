@@ -115,6 +115,8 @@ export default function WhyDetailScreen() {
         <TouchableOpacity
           style={[styles.closeBtn, { backgroundColor: colors.surface }]}
           onPress={() => router.back()}
+          accessibilityLabel="Close"
+          accessibilityRole="button"
         >
           <CloseIcon color={colors.textSecondary} />
         </TouchableOpacity>
@@ -122,6 +124,8 @@ export default function WhyDetailScreen() {
         <TouchableOpacity
           style={[styles.deleteBtn, { backgroundColor: colors.surface }]}
           onPress={handleDelete}
+          accessibilityLabel="Delete this why"
+          accessibilityRole="button"
         >
           <TrashIcon color={colors.missed} />
         </TouchableOpacity>
@@ -245,16 +249,16 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
   deleteBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -338,9 +342,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   colorSwatch: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
   },
   colorSwatchSelected: {
     borderWidth: 3,

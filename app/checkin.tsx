@@ -38,6 +38,8 @@ function CIStepHeader({
       <TouchableOpacity
         style={[styles.closeBtn, { backgroundColor: colors.surface }]}
         onPress={onClose}
+        accessibilityLabel="Close check-in"
+        accessibilityRole="button"
       >
         <Text style={[styles.closeX, { color: colors.textSecondary }]}>✕</Text>
       </TouchableOpacity>
@@ -686,8 +688,8 @@ const styles = StyleSheet.create({
     paddingTop: 14,
   },
   closeBtn: {
-    width: 36,
-    height: 36,
+    width: 44,
+    height: 44,
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',

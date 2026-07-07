@@ -254,11 +254,13 @@ export default function MilestoneScreen() {
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
-          <View style={{ width: 36 }} />
+          <View style={{ width: 44 }} />
           <Text style={[styles.headerLabel, { color: colors.textSecondary }]}>Milestone</Text>
           <Pressable
             style={[styles.closeBtn, { backgroundColor: colors.surface }]}
             onPress={() => router.back()}
+            accessibilityLabel="Close milestone"
+            accessibilityRole="button"
           >
             <CloseIcon color={colors.textSecondary} />
           </Pressable>
@@ -443,9 +445,9 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
