@@ -9,11 +9,11 @@ export const lightColors = {
   // Text hierarchy
   textPrimary: '#2C2C2C',
   textSecondary: '#7A7068',
-  textTertiary: '#A89B90',
+  textTertiary: '#918376',
 
   // Interactive
-  accent: '#C4835A',
-  accentSoft: 'rgba(196, 131, 90, 0.12)',
+  accent: '#B5754D',
+  accentSoft: 'rgba(181, 117, 77, 0.12)',
 
   // Status
   success: '#7DA68A',
@@ -21,31 +21,31 @@ export const lightColors = {
   missed: '#C4837A',
 
   // Named habit accent colors for the card left strip
-  habitTerracotta: '#C4835A',
+  habitTerracotta: '#B5754D',
   habitSage: '#7DA68A',
   habitPeach: '#D4A96A',
   habitMauve: '#A98AB8',
   habitSky: '#7AA2C0',
 
   // Kept as an array for the color picker in habit creation
-  habitColors: ['#C4835A', '#7DA68A', '#D4A96A', '#A98AB8', '#7AA2C0'],
+  habitColors: ['#B5754D', '#7DA68A', '#D4A96A', '#A98AB8', '#7AA2C0'],
 
   // Named why card pastels - randomly assigned as card backgrounds
-  whyLavender: '#B8A9D4',
-  whyDustyRose: '#D4A9B8',
-  whySky: '#A9C4D4',
-  whySage: '#A9D4B8',
-  whyPeach: '#D4C0A9',
-  whyPeriwinkle: '#A9B8D4',
-  whyBlush: '#D4B0A9',
-  whySeafoam: '#A9D4CC',
-  whyMauve: '#C4A9D4',
-  whyGold: '#D4CCA9',
+  whyLavender: '#8E7BB8',
+  whyDustyRose: '#B87E96',
+  whySky: '#7EA0B8',
+  whySage: '#7EB896',
+  whyPeach: '#B89E7E',
+  whyPeriwinkle: '#7E90B8',
+  whyBlush: '#B88A7E',
+  whySeafoam: '#7EB8AC',
+  whyMauve: '#A07EB8',
+  whyGold: '#B8AE7E',
 
   // As an array for random assignment
   whyCardColors: [
-    '#B8A9D4', '#D4A9B8', '#A9C4D4', '#A9D4B8', '#D4C0A9',
-    '#A9B8D4', '#D4B0A9', '#A9D4CC', '#C4A9D4', '#D4CCA9',
+    '#8E7BB8', '#B87E96', '#7EA0B8', '#7EB896', '#B89E7E',
+    '#7E90B8', '#B88A7E', '#7EB8AC', '#A07EB8', '#B8AE7E',
   ],
 };
 
