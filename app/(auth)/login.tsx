@@ -10,7 +10,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useAuthStore } from '@/stores/authStore';
 import Svg, { Circle, Path, Defs, RadialGradient, Stop } from 'react-native-svg';
@@ -251,6 +251,7 @@ function OrDivider({ label = 'or continue with' }: { label?: string }) {
 
 export default function LoginScreen() {
   const { colors } = useTheme();
+  const router = useRouter();
   const { signIn, isLoading } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -349,7 +350,7 @@ export default function LoginScreen() {
               onChangeText={setPassword}
               secureTextEntry
               rightAction="Forgot?"
-              onRightAction={() => Alert.alert('Reset password', 'Password reset will be available in a future update.')}
+              onRightAction={() => router.push('/(auth)/forgot-password')}
             />
           </View>
 

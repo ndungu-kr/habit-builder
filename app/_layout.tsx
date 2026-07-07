@@ -11,7 +11,7 @@ function RootLayoutNav() {
   const { colors } = useTheme();
   const router = useRouter();
   const segments = useSegments();
-  const { session, initialized } = useAuthStore();
+  const { session, initialized, authEvent } = useAuthStore();
   const [routingReady, setRoutingReady] = useState(false);
 
   // Use stable primitives so token refreshes don't re-trigger routing
@@ -43,7 +43,11 @@ function RootLayoutNav() {
       const onboardingDone = flag === 'true';
 
       if (inAuthGroup) {
-        router.replace(onboardingDone ? '/(tabs)' : '/onboarding');
+        if (authEvent === 'PASSWORD_RECOVERY') {
+          router.replace('/reset-password');
+        } else {
+          router.replace(onboardingDone ? '/(tabs)' : '/onboarding');
+        }
       } else if (!onboardingDone) {
         router.replace('/onboarding');
       }

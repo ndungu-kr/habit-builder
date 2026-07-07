@@ -209,6 +209,18 @@ export default function EditProfileScreen() {
         <Text style={[styles.fieldHint, { color: colors.textTertiary }]}>
           Email cannot be changed
         </Text>
+
+        <TouchableOpacity
+          onPress={() => router.push('/change-password')}
+          style={[styles.changePasswordBtn, { backgroundColor: colors.surface }]}
+          activeOpacity={0.85}
+          accessibilityLabel="Change password"
+          accessibilityRole="button"
+        >
+          <Text style={[styles.changePasswordBtnText, { color: colors.accent }]}>
+            Change password
+          </Text>
+        </TouchableOpacity>
       </View>
       </Pressable>
 
@@ -307,6 +319,17 @@ const styles = StyleSheet.create({
     fontFamily: 'Nunito_500Medium',
     fontSize: 12,
     marginTop: 6,
+  },
+  changePasswordBtn: {
+    borderRadius: 999,
+    paddingVertical: 15,
+    alignItems: 'center',
+    marginTop: 28,
+  },
+  changePasswordBtnText: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 15,
+    letterSpacing: -0.1,
   },
   footer: {
     position: 'absolute',

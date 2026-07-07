@@ -11,6 +11,9 @@ interface AuthState {
   signIn: (email: string, password: string) => Promise<string | null>;
   signUp: (email: string, password: string) => Promise<string | null>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<string | null>;
+  updatePassword: (newPassword: string) => Promise<string | null>;
+  authEvent: string | null;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -30,8 +33,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
 
     // Listen for future auth changes (login, logout, token refresh)
-    supabase.auth.onAuthStateChange((_event, session) => {
-      set({ session, user: session?.user ?? null });
+    supabase.auth.onAuthStateChange((event, session) => {
+      set({ session, user: session?.user ?? null, authEvent: event });
     });
   },
 
@@ -53,5 +56,17 @@ export const useAuthStore = create<AuthState>((set) => ({
   signOut: async () => {
     await supabase.auth.signOut();
     set({ session: null, user: null });
+  },
+
+  authEvent: null,
+
+  resetPassword: async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    return error ? error.message : null;
+  },
+
+  updatePassword: async (newPassword) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    return error ? error.message : null;
   },
 }));
