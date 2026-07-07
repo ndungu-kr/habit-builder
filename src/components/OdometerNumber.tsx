@@ -12,7 +12,7 @@ export default function OdometerNumber({ value, style, duration = 350 }: Odomete
   const slideOut = useRef(new Animated.Value(0)).current;
   const slideIn = useRef(new Animated.Value(0)).current;
   const opacityOut = useRef(new Animated.Value(1)).current;
-  const opacityIn = useRef(new Animated.Value(0)).current;
+  const opacityIn = useRef(new Animated.Value(1)).current;
   const isFirst = useRef(true);
   const prevValue = useRef(value);
 
