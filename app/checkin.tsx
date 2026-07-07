@@ -814,7 +814,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     lineHeight: 25.5,
     textAlign: 'center',
-    maxWidth: 300,
   },
   overviewCard: {
     marginTop: 32,

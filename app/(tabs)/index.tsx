@@ -320,7 +320,6 @@ function RestDayContent({ totalShownUp }: { totalShownUp: number }) {
           marginTop: 6,
           lineHeight: 22,
           textAlign: 'center',
-          maxWidth: 280,
         }}>
           No habits scheduled today. Enjoy your day off - your streak holds.
         </Text>
@@ -862,14 +861,12 @@ const styles = StyleSheet.create({
     marginTop: 6,
     letterSpacing: -0.3,
     lineHeight: 26,
-    maxWidth: 240,
   },
   freshStartSub: {
     fontFamily: 'Nunito_400Regular',
     fontSize: 14,
     marginTop: 8,
     lineHeight: 21,
-    maxWidth: 280,
   },
 
   // List
@@ -890,7 +887,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     // Shadow for iOS
-    shadowColor: '#C4835A',
+    shadowColor: '#B5754D',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
     shadowRadius: 24,

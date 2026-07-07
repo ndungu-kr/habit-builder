@@ -725,7 +725,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     lineHeight: 24,
     textAlign: 'center',
-    maxWidth: 300,
   },
   balanceCard: {
     marginTop: 28,
@@ -850,6 +849,5 @@ const styles = StyleSheet.create({
     marginTop: 12,
     lineHeight: 24,
     textAlign: 'center',
-    maxWidth: 300,
   },
 });

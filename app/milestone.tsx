@@ -480,7 +480,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     lineHeight: 23,
     textAlign: 'center',
-    maxWidth: 320,
   },
   noteWrap: {
     paddingHorizontal: 24,

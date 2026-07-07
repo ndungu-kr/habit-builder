@@ -615,7 +615,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     lineHeight: 27,
     textAlign: 'center',
-    maxWidth: 300,
   },
   dateChip: {
     marginTop: 32,
@@ -734,7 +733,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     lineHeight: 25.5,
     textAlign: 'center',
-    maxWidth: 280,
   },
   confirmDismiss: {
     backgroundColor: 'rgba(255,255,255,0.18)',
