@@ -768,6 +768,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 24,
     paddingTop: 8,
+    paddingBottom: 8,
     gap: 12,
   },
   greeting: {
