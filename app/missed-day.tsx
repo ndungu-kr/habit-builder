@@ -7,10 +7,11 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import Svg, { Circle, Path, G as SvgG, Line } from 'react-native-svg';
+import Svg, { Path, G as SvgG } from 'react-native-svg';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useStreakStore } from '@/stores/streakStore';
+import { useJourneyStore } from '@/stores/journeyStore';
 import { IconFlame, IconSnowflake } from '@/components/Icons';
 import HelpTooltip from '@/components/HelpTooltip';
 import Toast from 'react-native-toast-message';
@@ -342,22 +343,31 @@ function MissedFreezeUsed({
 // Sunrise SVG for the reset screen
 function SunriseIcon() {
   return (
-    <Svg width={50} height={50} viewBox="0 0 48 48" fill="none">
-      <Circle cx={24} cy={30} r={9} fill="#fff" opacity={0.95} />
-      <SvgG stroke="#fff" strokeWidth={2.4} strokeLinecap="round" opacity={0.85}>
-        <Path d="M24 12v4" />
-        <Path d="M12 28h4" />
-        <Path d="M32 28h4" />
-        <Path d="M15 18l2.5 2.5" />
-        <Path d="M33 20.5L30.5 18" />
+    <Svg width={56} height={56} viewBox="0 0 48 48" fill="none">
+      {/* Rays fanning up from the sun - wider fan with gap from sun edge */}
+      <SvgG stroke="#fff" strokeWidth={2.4} strokeLinecap="round" opacity={0.9}>
+        <Path d="M11 26L6 24" />
+        <Path d="M18 19L16 14" />
+        <Path d="M30 19L32 14" />
+        <Path d="M37 26L42 24" />
       </SvgG>
-      <Path d="M8 38h32" stroke="#fff" strokeWidth={2} strokeLinecap="round" opacity={0.5} />
+      {/* Horizon line - drawn first so the sun sits cleanly on top */}
+      <Path d="M4 32h40" stroke="#fff" strokeWidth={2} strokeLinecap="round" opacity={0.55} />
+      {/* Sun - half-circle peeking above the horizon */}
+      <Path d="M14 32 A 10 10 0 0 1 34 32 Z" fill="#fff" opacity={0.98} />
     </Svg>
   );
 }
 
 function MissedReset({ onContinue }: { onContinue: () => void }) {
   const { colors } = useTheme();
+  const lifetimeDays = useJourneyStore((s) => s.lifetimeDays);
+  const fetchJourneyData = useJourneyStore((s) => s.fetchJourneyData);
+
+  useEffect(() => {
+    // Refresh so we show the up-to-date lifetime count on reset
+    fetchJourneyData();
+  }, []);
 
   return (
     <View style={{ flex: 1 }}>
@@ -388,7 +398,7 @@ function MissedReset({ onContinue }: { onContinue: () => void }) {
           </Text>
           <View style={styles.lifetimeGrid}>
             <View>
-              <Text style={[styles.lifetimeStat, { color: colors.textPrimary }]}>-</Text>
+              <Text style={[styles.lifetimeStat, { color: colors.textPrimary }]}>{lifetimeDays}</Text>
               <Text style={[styles.lifetimeCaption, { color: colors.textSecondary }]}>
                 Days shown up
               </Text>
