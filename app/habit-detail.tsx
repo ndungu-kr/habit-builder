@@ -497,12 +497,12 @@ export default function HabitDetailScreen() {
 
   const handleDelete = () => {
     Alert.alert(
-      'Delete habit',
-      'This is permanent and cannot be undone. All data for this habit will be deleted.',
+      `Delete "${habitName}"?`,
+      'All completion records, journal notes, whys, photos, and milestones for this habit will be permanently deleted. This can\'t be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Delete',
+          text: 'Delete forever',
           style: 'destructive',
           onPress: async () => {
             const error = await deleteHabit(habitId);
