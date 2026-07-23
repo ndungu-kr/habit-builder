@@ -8,6 +8,7 @@ import {
   Alert,
   Modal,
   Pressable,
+  TextInput,
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTheme } from '@/providers/ThemeProvider';
@@ -557,6 +558,9 @@ export default function SettingsScreen() {
   // Which time field is being edited, null means picker is hidden
   const [editingTime, setEditingTime] = useState<'morning' | 'evening' | null>(null);
   const [pendingTime, setPendingTime] = useState<Date | null>(null);
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deletingAccount, setDeletingAccount] = useState(false);
   
   useFocusEffect(
     useCallback(() => {
@@ -621,35 +625,27 @@ export default function SettingsScreen() {
   };
 
   const handleDeleteAccount = () => {
-    Alert.alert(
-      'Delete Account',
-      'This is permanent. All your data will be removed and cannot be recovered.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            const userId = session?.user?.id;
+    setDeleteConfirmText('');
+    setDeleteAccountOpen(true);
+  };
 
-            const { error } = await supabase.rpc('delete_user_account');
+  const confirmDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE' || deletingAccount) return;
+    setDeletingAccount(true);
+    const userId = session?.user?.id;
 
-            if (error) {
-              Alert.alert('Error', 'Could not delete account. Please try again.');
-              return;
-            }
+    const { error } = await supabase.rpc('delete_user_account');
+    if (error) {
+      setDeletingAccount(false);
+      Alert.alert('Error', 'Could not delete account. Please try again.');
+      return;
+    }
 
-            // Clear local onboarding flag
-            if (userId) {
-              await SecureStore.deleteItemAsync(`onboarding_done_${userId}`);
-            }
-
-            // Sign out locally
-            await signOut();
-          },
-        },
-      ]
-    );
+    if (userId) {
+      await SecureStore.deleteItemAsync(`onboarding_done_${userId}`);
+    }
+    await signOut();
+    // Component unmounts on sign-out - no need to close the modal
   };
 
   const themeLabel =
@@ -936,6 +932,129 @@ export default function SettingsScreen() {
           </Pressable>
         </Modal>
       )}
+
+      {/* Delete account confirmation - requires typing DELETE for friction */}
+      <Modal
+        visible={deleteAccountOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => !deletingAccount && setDeleteAccountOpen(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', paddingHorizontal: 24 }}>
+          <Pressable
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+            onPress={() => !deletingAccount && setDeleteAccountOpen(false)}
+          />
+          <View
+            style={{
+              backgroundColor: colors.bg,
+              borderRadius: 24,
+              padding: 24,
+              paddingTop: 26,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.25,
+              shadowRadius: 20,
+              elevation: 12,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: 'Nunito_800ExtraBold',
+                fontSize: 22,
+                color: colors.textPrimary,
+                letterSpacing: -0.4,
+                lineHeight: 26,
+              }}
+            >
+              Delete your account?
+            </Text>
+            <Text
+              style={{
+                fontFamily: 'Nunito_500Medium',
+                fontSize: 14.5,
+                color: colors.textSecondary,
+                marginTop: 10,
+                lineHeight: 21,
+              }}
+            >
+              This is permanent and cannot be undone. Every habit, completion, note, why, photo, streak, and milestone tied to your account will be deleted forever.
+            </Text>
+
+            <Text
+              style={{
+                fontFamily: 'Nunito_700Bold',
+                fontSize: 12,
+                color: colors.textSecondary,
+                letterSpacing: 1.2,
+                textTransform: 'uppercase',
+                marginTop: 22,
+                marginBottom: 8,
+              }}
+            >
+              Type <Text style={{ color: colors.missed }}>DELETE</Text> to confirm
+            </Text>
+            <TextInput
+              value={deleteConfirmText}
+              onChangeText={setDeleteConfirmText}
+              placeholder="DELETE"
+              placeholderTextColor={colors.textTertiary}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              editable={!deletingAccount}
+              style={{
+                backgroundColor: colors.surface,
+                borderRadius: 12,
+                borderWidth: 1.5,
+                borderColor: deleteConfirmText === 'DELETE' ? colors.missed : colors.border,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                fontFamily: 'Nunito_700Bold',
+                fontSize: 16,
+                letterSpacing: 1,
+                color: colors.textPrimary,
+              }}
+            />
+
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 22 }}>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  backgroundColor: colors.surface,
+                  borderRadius: 999,
+                  paddingVertical: 14,
+                  alignItems: 'center',
+                  opacity: deletingAccount ? 0.5 : 1,
+                }}
+                onPress={() => setDeleteAccountOpen(false)}
+                disabled={deletingAccount}
+                activeOpacity={0.75}
+              >
+                <Text style={{ fontFamily: 'Nunito_700Bold', fontSize: 15, color: colors.textPrimary, letterSpacing: -0.05 }}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  backgroundColor: colors.missed,
+                  borderRadius: 999,
+                  paddingVertical: 14,
+                  alignItems: 'center',
+                  opacity: deleteConfirmText === 'DELETE' && !deletingAccount ? 1 : 0.4,
+                }}
+                onPress={confirmDeleteAccount}
+                disabled={deleteConfirmText !== 'DELETE' || deletingAccount}
+                activeOpacity={0.85}
+              >
+                <Text style={{ fontFamily: 'Nunito_700Bold', fontSize: 15, color: '#fff', letterSpacing: -0.05 }}>
+                  {deletingAccount ? 'Deleting...' : 'Delete forever'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
