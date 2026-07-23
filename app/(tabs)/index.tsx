@@ -5,6 +5,7 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/providers/ThemeProvider';
@@ -35,6 +36,7 @@ import FadeInView from '@/components/FadeInView';
 import OdometerNumber from '@/components/OdometerNumber';
 import { AppState } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { todayLocal } from '@/utils/date';
 
 // Returns greeting based on time of day
 function getGreeting(): string {
@@ -198,16 +200,22 @@ const HabitCard = React.memo(function HabitCard({
 function SummaryFooter({
   doneCount,
   totalCount,
+  eveningReminderTime,
   onCheckIn,
 }: {
   doneCount: number;
   totalCount: number;
+  eveningReminderTime?: string;
   onCheckIn: () => void;
 }) {
   const { colors } = useTheme();
   const pct = totalCount > 0 ? doneCount / totalCount : 0;
-  // Show check-in prompt in the evening (after 5pm)
-  const showCheckIn = new Date().getHours() >= 17;
+
+  // Show the check-in prompt once we've hit the user's evening reminder time.
+  // Falls back to 5 PM if profile hasn't loaded yet.
+  const now = new Date();
+  const [h, m] = (eveningReminderTime ?? '17:00').split(':').map(Number);
+  const showCheckIn = now.getHours() * 60 + now.getMinutes() >= h * 60 + m;
 
   return (
     <View style={[styles.summaryCard, { backgroundColor: colors.surface }]}>
@@ -233,7 +241,7 @@ function SummaryFooter({
         <AnimatedPressable
           style={[styles.checkInPrompt, { borderTopColor: colors.border }]}
           onPress={onCheckIn}
-          accessibilityLabel="Ready to reflect on your day? Begin tonight's check-in."
+          accessibilityLabel="Ready to reflect on your day? Begin your check-in."
           accessibilityRole="button"
         >
           <View style={{ flex: 1 }}>
@@ -241,7 +249,7 @@ function SummaryFooter({
               Ready to reflect on your day?
             </Text>
             <Text style={[styles.checkInSub, { color: colors.textSecondary }]}>
-              Tonight's check-in is waiting.
+              Take a moment to review the day.
             </Text>
           </View>
           <View style={styles.checkInAction}>
@@ -400,7 +408,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { habits, isLoading, fetchHabits } = useHabitStore();
   const { hasPledgedToday, todaysPledges, fetchTodaysPledges, createPledges } = usePledgeStore();
-  const { streak, fetchStreak, incrementStreak, checkYesterdayMissed, pendingMilestone, setPendingMilestone } = useStreakStore();
+  const { streak, fetchStreak, incrementStreak, revertTodaysIncrement, checkYesterdayMissed, pendingMilestone, setPendingMilestone } = useStreakStore();
   const { profile, fetchProfile } = useProfileStore();
   const {
     todaysCompletions,
@@ -496,15 +504,24 @@ export default function HomeScreen() {
     }
   }, [pendingMilestone]);
 
-  // Only show habits scheduled for today
-  const todaysHabits = useMemo(() => habits.filter((habit) => {
-    if (habit.schedule_type === 'everyday') return true;
-    const dayMap: Record<number, string> = {
-      0: 'sun', 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat',
-    };
-    const today = dayMap[new Date().getDay()];
-    return habit.scheduled_days?.includes(today as any);
-  }), [habits]);
+  // Only show habits scheduled for today. Habits added today don't count toward
+  // today's streak - they start applying tomorrow. This prevents newly-created
+  // habits from silently invalidating a day that was already earned.
+  const todaysHabits = useMemo(() => {
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    return habits.filter((habit) => {
+      if (new Date(habit.created_at) >= startOfToday) return false;
+
+      if (habit.schedule_type === 'everyday') return true;
+      const dayMap: Record<number, string> = {
+        0: 'sun', 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat',
+      };
+      const today = dayMap[new Date().getDay()];
+      return habit.scheduled_days?.includes(today as any);
+    });
+  }, [habits]);
 
   // Auto-pledge any new habits created after today's pledge
   useEffect(() => {
@@ -615,6 +632,7 @@ export default function HomeScreen() {
               <SummaryFooter
                 doneCount={todaysCompletions.filter((c) => c.status === 'completed' || c.status === 'partial').length}
                 totalCount={todaysHabits.length}
+                eveningReminderTime={profile?.evening_reminder_time}
                 onCheckIn={() => router.push('/checkin')}
               />
             ) : null
@@ -651,9 +669,36 @@ export default function HomeScreen() {
             closeSheet();
           }}
           onUndo={async () => {
-            const error = await undoCompletion(selectedHabit.id);
-            if (error) { Toast.show({ type: 'error', text1: 'Couldn\'t undo', text2: error }); return; }
-            fetchStreak();
+            const habitId = selectedHabit.id;
+            const scheduledIds = todaysHabits.map((h) => h.id);
+            const streakCountedToday = streak?.last_incremented_date === todayLocal();
+            const meetsBefore = shouldStreakIncrement(todaysCompletions, scheduledIds);
+            const meetsAfter = shouldStreakIncrement(
+              todaysCompletions.filter((c) => c.habit_id !== habitId),
+              scheduledIds,
+            );
+            const willRevertStreak = streakCountedToday && meetsBefore && !meetsAfter;
+
+            const doUndo = async () => {
+              const error = await undoCompletion(habitId);
+              if (error) { Toast.show({ type: 'error', text1: 'Couldn\'t undo', text2: error }); return; }
+              if (willRevertStreak) await revertTodaysIncrement();
+              fetchStreak();
+            };
+
+            if (willRevertStreak) {
+              const from = streak?.current_streak ?? 0;
+              Alert.alert(
+                'Revert your streak?',
+                `Undoing this will bring your streak from ${from} back to ${from - 1}. Any milestone or freeze earned by today's streak will also be revoked.`,
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Undo anyway', style: 'destructive', onPress: doUndo },
+                ]
+              );
+            } else {
+              doUndo();
+            }
           }}
           onPledgeFirst={() => { closeSheet(); router.push('/pledge'); }}
           onViewDetails={() => {

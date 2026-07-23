@@ -38,6 +38,7 @@ interface StreakState {
   checkYesterdayMissed: (habits: Habit[]) => Promise<boolean>;
   clearMissedDay: () => void;
   setPendingMilestone: (m: PendingMilestone | null) => void;
+  revertTodaysIncrement: () => Promise<string | null>;
 }
 
 function todayStr(): string {
@@ -84,6 +85,9 @@ export const useStreakStore = create<StreakState>((set, get) => ({
       const { streak } = get();
       if (!streak) return null;
 
+      // Idempotency guard - never double-count within the same local day
+      if (streak.last_incremented_date === todayLocal()) return null;
+
       const newStreak = streak.current_streak + 1;
       const newLongest = Math.max(streak.longest_streak, newStreak);
 
@@ -101,6 +105,7 @@ export const useStreakStore = create<StreakState>((set, get) => ({
           longest_streak: newLongest,
           freezes_available: newFreezes,
           freezes_earned_total: newFreezesEarned,
+          last_incremented_date: todayLocal(),
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', streak.user_id)
@@ -131,6 +136,64 @@ export const useStreakStore = create<StreakState>((set, get) => ({
       return null;
     } catch (e: any) {
       return e.message || 'Failed to update streak';
+    }
+  },
+
+  // Undo today's streak increment - used when an undo drops us back below the criteria.
+  // Rolls back current_streak, and if this specific increment earned a milestone or
+  // freeze, rolls those back too. Longest_streak only rolls back if it equalled the
+  // pre-decrement current (meaning this increment was what set it).
+  revertTodaysIncrement: async () => {
+    try {
+      const { streak } = get();
+      if (!streak) return null;
+      if (streak.last_incremented_date !== todayLocal()) return null;
+
+      const oldStreak = streak.current_streak;
+      const newStreak = Math.max(0, oldStreak - 1);
+
+      // Roll back longest_streak only if this increment was what set it
+      const newLongest = streak.longest_streak === oldStreak
+        ? Math.max(0, streak.longest_streak - 1)
+        : streak.longest_streak;
+
+      // Roll back freeze if this increment earned one
+      let newFreezes = streak.freezes_available;
+      let newFreezesEarned = streak.freezes_earned_total;
+      if (didEarnFreeze(oldStreak) && newFreezesEarned > 0) {
+        newFreezes = Math.max(0, newFreezes - 1);
+        newFreezesEarned = Math.max(0, newFreezesEarned - 1);
+      }
+
+      const { data, error } = await supabase
+        .from('unified_streaks')
+        .update({
+          current_streak: newStreak,
+          longest_streak: newLongest,
+          freezes_available: newFreezes,
+          freezes_earned_total: newFreezesEarned,
+          last_incremented_date: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', streak.user_id)
+        .select()
+        .single();
+
+      if (error) return error.message;
+      if (data) set({ streak: data });
+
+      // Roll back milestone if this increment hit one
+      const milestone = getMilestoneReached(oldStreak);
+      if (milestone) {
+        await supabase
+          .from('streak_milestones')
+          .delete()
+          .eq('user_id', streak.user_id)
+          .eq('streak_count', milestone);
+      }
+      return null;
+    } catch (e: any) {
+      return e.message || 'Failed to revert streak';
     }
   },
 
@@ -176,6 +239,7 @@ export const useStreakStore = create<StreakState>((set, get) => ({
         .from('unified_streaks')
         .update({
           current_streak: 0,
+          last_incremented_date: null,
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', streak.user_id)

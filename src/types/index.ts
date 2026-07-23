@@ -90,6 +90,7 @@ export interface UnifiedStreak {
   freezes_available: number;
   freezes_earned_total: number;
   freezes_used_total: number;
+  last_incremented_date: string | null;
   updated_at: string;
 }
 
