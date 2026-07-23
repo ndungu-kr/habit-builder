@@ -356,12 +356,6 @@ function PledgeConfirmation({
 }) {
   const { colors } = useTheme();
 
-  // Auto-dismiss after a short pause
-  useEffect(() => {
-    const timer = setTimeout(onDone, 2000);
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <View style={[styles.confirmBg, { backgroundColor: colors.accent }]}>
       {/* Soft pulse rings */}
