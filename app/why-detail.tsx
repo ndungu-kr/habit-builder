@@ -168,28 +168,25 @@ export default function WhyDetailScreen() {
         ) : (
           <>
             <FadeInView delay={0} slideDistance={0}>
-            <View style={[styles.textCard, { backgroundColor: selectedColor }]}>
+            <View style={[styles.editableCard, { backgroundColor: selectedColor }]}>
               <Text style={styles.textQuote}>"</Text>
-              <Text style={styles.textContent}>{text || 'Your why'}</Text>
-            </View>
-            </FadeInView>
-
-            <FadeInView delay={150}>
-            <View style={[styles.fieldWrap, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Your why</Text>
               <TextInput
-                style={[styles.fieldInput, { color: colors.textPrimary }]}
-                placeholder="Why does this matter?"
-                placeholderTextColor={colors.textTertiary}
+                style={styles.cardInput}
+                placeholder="I want to be calmer for the people I love."
+                placeholderTextColor="rgba(255,255,255,0.55)"
                 value={text}
                 onChangeText={setText}
                 maxLength={500}
                 multiline
+                textAlignVertical="top"
               />
-              <Text style={[styles.charCount, { color: colors.textTertiary }]}>
+            </View>
+            </FadeInView>
+
+            <FadeInView delay={150}>
+              <Text style={[styles.charCountBelow, { color: colors.textTertiary }]}>
                 {text.length}/500
               </Text>
-            </View>
             </FadeInView>
           </>
         )}
@@ -293,6 +290,30 @@ const styles = StyleSheet.create({
     fontSize: 64,
     color: 'rgba(255,255,255,0.25)',
     lineHeight: 64,
+  },
+  editableCard: {
+    borderRadius: 20,
+    padding: 28,
+    paddingTop: 44,
+    paddingHorizontal: 24,
+    minHeight: 220,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  cardInput: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 19,
+    color: '#fff',
+    lineHeight: 27,
+    letterSpacing: -0.1,
+    padding: 0,
+    minHeight: 140,
+  },
+  charCountBelow: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 12,
+    textAlign: 'right',
+    marginBottom: 20,
   },
   textContent: {
     fontFamily: 'Nunito_600SemiBold',

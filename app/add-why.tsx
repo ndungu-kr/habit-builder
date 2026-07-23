@@ -134,30 +134,24 @@ export default function AddWhyScreen() {
 
         {mode === 'text' ? (
           <>
-            {/* Preview card */}
-            <View style={[styles.previewCard, { backgroundColor: selectedColor }]}>
+            {/* Editable why card - type directly where it will appear */}
+            <View style={[styles.editableCard, { backgroundColor: selectedColor }]}>
               <Text style={styles.previewQuote}>"</Text>
-              <Text style={styles.previewText}>
-                {text || 'Your why will appear here...'}
-              </Text>
-            </View>
-
-            {/* Text input */}
-            <View style={[styles.inputWrap, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <TextInput
-                style={[styles.input, { color: colors.textPrimary }]}
-                placeholder="e.g. To be calmer and more present for the people I love."
-                placeholderTextColor={colors.textTertiary}
+                style={styles.cardInput}
+                placeholder="I want to be calmer for the people I love."
+                placeholderTextColor="rgba(255,255,255,0.55)"
                 multiline
                 maxLength={500}
                 value={text}
                 onChangeText={setText}
                 autoFocus
+                textAlignVertical="top"
               />
-              <Text style={[styles.charCount, { color: colors.textTertiary }]}>
-                {text.length}/500
-              </Text>
             </View>
+            <Text style={[styles.charCountBelow, { color: colors.textTertiary }]}>
+              {text.length}/500
+            </Text>
           </>
         ) : (
           <>
@@ -327,6 +321,30 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     letterSpacing: -0.2,
     textAlign: 'center',
+  },
+  editableCard: {
+    borderRadius: 20,
+    padding: 28,
+    paddingTop: 44,
+    paddingHorizontal: 24,
+    minHeight: 200,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  cardInput: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 19,
+    color: '#fff',
+    lineHeight: 27,
+    letterSpacing: -0.1,
+    padding: 0,
+    minHeight: 130,
+  },
+  charCountBelow: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 12,
+    textAlign: 'right',
+    marginBottom: 20,
   },
   inputWrap: {
     borderRadius: 16,
