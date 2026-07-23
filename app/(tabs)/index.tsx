@@ -430,13 +430,45 @@ export default function HomeScreen() {
   // Called on mount, every time the tab regains focus, and whenever the app
   // returns from background. This is what makes the "today" state actually
   // roll over at midnight without needing a fragile timer.
-  const refresh = useCallback(() => {
-    fetchHabits();
-    fetchTodaysPledges();
-    fetchTodaysCompletions();
-    fetchStreak();
-    fetchProfile();
-  }, [fetchHabits, fetchTodaysPledges, fetchTodaysCompletions, fetchStreak, fetchProfile]);
+  //
+  // Also performs a streak catch-up: if all today's scheduled habits are
+  // already engaged but the streak wasn't incremented today (e.g. because a
+  // previous incrementStreak call failed silently, the app crashed after the
+  // last completion, or the user is on a device that lost connectivity mid-
+  // completion), we self-heal here.
+  const refresh = useCallback(async () => {
+    await Promise.all([
+      fetchHabits(),
+      fetchTodaysPledges(),
+      fetchTodaysCompletions(),
+      fetchStreak(),
+      fetchProfile(),
+    ]);
+
+    const currentStreak = useStreakStore.getState().streak;
+    if (!currentStreak || currentStreak.last_incremented_date === todayLocal()) return;
+
+    // Recompute today's scheduled habits from the freshly-fetched stores
+    const freshHabits = useHabitStore.getState().habits;
+    const freshCompletions = useCompletionStore.getState().todaysCompletions;
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const dayMap: Record<number, string> = {
+      0: 'sun', 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat',
+    };
+    const todayLabel = dayMap[new Date().getDay()];
+    const scheduledIds = freshHabits
+      .filter((h) => {
+        if (new Date(h.created_at) >= startOfToday) return false;
+        if (h.schedule_type === 'everyday') return true;
+        return h.scheduled_days?.includes(todayLabel as any);
+      })
+      .map((h) => h.id);
+
+    if (shouldStreakIncrement(freshCompletions, scheduledIds)) {
+      await incrementStreak();
+    }
+  }, [fetchHabits, fetchTodaysPledges, fetchTodaysCompletions, fetchStreak, fetchProfile, incrementStreak]);
 
   useEffect(() => {
     refresh();
