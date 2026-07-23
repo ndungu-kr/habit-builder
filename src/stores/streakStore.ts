@@ -10,6 +10,7 @@ import {
   getMilestoneReached,
 } from '@/utils/streakCalculator';
 import { todayLocal, yesterdayLocal } from '@/utils/date';
+import { formatLocalDate } from '@/utils/date';
 
 interface MissedDayInfo {
   missedHabits: { habitId: string; habitName: string; habitColor: string; kind: 'missed' | 'skipped' }[];
@@ -269,11 +270,12 @@ export const useStreakStore = create<StreakState>((set, get) => ({
       if (existingFreeze) return false;
     }
 
-    // If streak was already reset today, skip the flow
+    // If streak was already reset today, skip the flow.
+    // updated_at is a UTC timestamp - convert to a local date before comparing.
     const current = get().streak;
-    if (current && current.current_streak === 0) {
-      const updatedDate = current.updated_at?.split('T')[0];
-      if (updatedDate === todayStr()) return false;
+    if (current && current.current_streak === 0 && current.updated_at) {
+      const updatedLocal = formatLocalDate(new Date(current.updated_at));
+      if (updatedLocal === todayStr()) return false;
     }
     const { streak } = get();
     if (!streak) return false;

@@ -15,6 +15,7 @@ import { useJourneyStore } from '@/stores/journeyStore';
 import { IconFlame, IconSnowflake } from '@/components/Icons';
 import HelpTooltip from '@/components/HelpTooltip';
 import Toast from 'react-native-toast-message';
+import { yesterdayLocal } from '@/utils/date';
 
 // Progress dots - no close button, this flow is mandatory
 function MDStepHeader({
@@ -470,9 +471,7 @@ export default function MissedDayScreen() {
   }
 
   const handleUseFreeze = async () => {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const error = await useFreeze(yesterday.toISOString().split('T')[0]);
+    const error = await useFreeze(yesterdayLocal());
     if (error) {
       Toast.show({ type: 'error', text1: 'Couldn\'t use freeze', text2: error });
       return;
