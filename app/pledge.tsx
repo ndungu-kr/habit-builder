@@ -328,9 +328,12 @@ function PledgeHabit({
         <Text style={[styles.pledgeStatement, { color: colors.textSecondary }]}>
           I pledge to{' '}
           <Text style={[styles.pledgeBold, { color: colors.textPrimary }]}>
-            {habit.goal_value} {habit.goal_unit}
+            {habit.name}
           </Text>{' '}
           today.
+        </Text>
+        <Text style={[styles.pledgeGoalSub, { color: colors.textTertiary }]}>
+          {habit.goal_value} {habit.goal_unit} goal
         </Text>
       </View>
 
@@ -672,6 +675,13 @@ const styles = StyleSheet.create({
   },
   pledgeBold: {
     fontFamily: 'Nunito_700Bold',
+  },
+  pledgeGoalSub: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 12.5,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginTop: 6,
   },
 
   // Confirmation
