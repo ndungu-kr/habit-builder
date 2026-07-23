@@ -167,8 +167,7 @@ function StepName({
             styles.nameInputBox,
             {
               backgroundColor: colors.surface,
-              borderColor: value ? colors.accent : colors.border,
-              shadowColor: value ? colors.accent : 'transparent',
+              borderColor: colors.accent,
             },
           ]}
         >
@@ -879,13 +878,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     letterSpacing: 1.4,
     textTransform: 'uppercase',
+    marginBottom: 6,
   },
   nameInput: {
     fontFamily: 'Nunito_700Bold',
     fontSize: 22,
     letterSpacing: -0.3,
-    marginTop: 6,
-    padding: 0,
   },
   examplesRow: {
     flexDirection: 'row',
