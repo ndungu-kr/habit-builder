@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import { useProfileStore } from '@/stores/profileStore';
+import { formatLocalDate } from '@/utils/date';
 
 interface HabitProgress {
   habitId: string;
@@ -44,7 +45,7 @@ function getWeekday(date: Date, sundayStart: boolean): number {
 }
 
 function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0];
+  return formatLocalDate(date);
 }
 
 export const useJourneyStore = create<JourneyState>((set) => ({

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import { Pledge } from '@/types';
+import { todayLocal } from '@/utils/date';
 
 interface PledgeState {
   todaysPledges: Pledge[];
@@ -10,10 +11,7 @@ interface PledgeState {
   createPledges: (habitIds: string[]) => Promise<string | null>;
 }
 
-const getTodayDate = () => {
-  const now = new Date();
-  return now.toISOString().split('T')[0];
-};
+const getTodayDate = () => todayLocal();
 
 export const usePledgeStore = create<PledgeState>((set, get) => ({
   todaysPledges: [],

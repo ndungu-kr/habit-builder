@@ -9,6 +9,7 @@ import {
   getUnengagedHabits,
   getMilestoneReached,
 } from '@/utils/streakCalculator';
+import { todayLocal, yesterdayLocal } from '@/utils/date';
 
 interface MissedDayInfo {
   missedHabits: { habitId: string; habitName: string; habitColor: string; kind: 'missed' | 'skipped' }[];
@@ -40,13 +41,11 @@ interface StreakState {
 }
 
 function todayStr(): string {
-  return new Date().toISOString().split('T')[0];
+  return todayLocal();
 }
 
 function yesterdayStr(): string {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return d.toISOString().split('T')[0];
+  return yesterdayLocal();
 }
 
 // Which day of the week was yesterday

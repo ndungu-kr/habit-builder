@@ -33,6 +33,8 @@ import Toast from 'react-native-toast-message';
 import AnimatedPressable from '@/components/AnimatedPressable';
 import FadeInView from '@/components/FadeInView';
 import OdometerNumber from '@/components/OdometerNumber';
+import { AppState } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 // Returns greeting based on time of day
 function getGreeting(): string {
@@ -416,13 +418,36 @@ export default function HomeScreen() {
   const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
   const [sheetVisible, setSheetVisible] = useState(false);
 
-  useEffect(() => {
+  // One shared refresh - re-pulls everything that changes day-to-day.
+  // Called on mount, every time the tab regains focus, and whenever the app
+  // returns from background. This is what makes the "today" state actually
+  // roll over at midnight without needing a fragile timer.
+  const refresh = useCallback(() => {
     fetchHabits();
     fetchTodaysPledges();
     fetchTodaysCompletions();
     fetchStreak();
     fetchProfile();
+  }, [fetchHabits, fetchTodaysPledges, fetchTodaysCompletions, fetchStreak, fetchProfile]);
+
+  useEffect(() => {
+    refresh();
   }, []);
+
+  // Refetch when the tab regains focus (e.g. user switches tabs and comes back)
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
+
+  // Refetch when the app returns from background to foreground
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (next) => {
+      if (next === 'active') refresh();
+    });
+    return () => sub.remove();
+  }, [refresh]);
 
   // Fetch times shown up when habits are loaded
   useEffect(() => {

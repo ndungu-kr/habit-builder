@@ -4,6 +4,7 @@ import { Completion, CompletionStatus } from '@/types';
 import { useStreakStore } from '@/stores/streakStore';
 import { sendMilestoneNotification } from '@/utils/notifications';
 import { MILESTONE_THRESHOLDS } from '@/utils/streakCalculator';
+import { todayLocal } from '@/utils/date';
 
 interface CompletionState {
   todaysCompletions: Completion[];
@@ -45,9 +46,9 @@ async function checkHabitMilestone(habitId: string, habitName: string, habitColo
   }
 }
 
-// Helper to get today's date as YYYY-MM-DD
+// Local-time YYYY-MM-DD - see src/utils/date.ts for why
 function todayStr(): string {
-  return new Date().toISOString().split('T')[0];
+  return todayLocal();
 }
 
 export const useCompletionStore = create<CompletionState>((set, get) => ({

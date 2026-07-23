@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import { HabitWhy, HabitMilestone, CheckIn, CompletionStatus } from '@/types';
+import { formatLocalDate } from '@/utils/date';
 
 interface HabitStats {
   timesShownUp: number;
@@ -50,7 +51,7 @@ function getWeekday(date: Date): number {
 }
 
 function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0];
+  return formatLocalDate(date);
 }
 
 export const useHabitDetailStore = create<HabitDetailState>((set) => ({

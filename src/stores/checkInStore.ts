@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import { CheckIn, MoodRating } from '@/types';
+import { todayLocal } from '@/utils/date';
 
 interface CheckInState {
   todaysCheckIns: CheckIn[];
@@ -11,7 +12,7 @@ interface CheckInState {
 }
 
 function todayStr(): string {
-  return new Date().toISOString().split('T')[0];
+  return todayLocal();
 }
 
 export const useCheckInStore = create<CheckInState>((set, get) => ({
