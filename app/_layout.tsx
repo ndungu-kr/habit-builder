@@ -6,6 +6,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { ThemeProvider, useTheme } from '@/providers/ThemeProvider';
 import { useAuthStore } from '@/stores/authStore';
+import { DraxProvider } from 'react-native-drax';
 
 function RootLayoutNav() {
   const { colors } = useTheme();
@@ -79,8 +80,10 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
-        <RootLayoutNav />
-        <Toast config={toastConfig} position="top" topOffset={60} />
+        <DraxProvider>
+          <RootLayoutNav />
+          <Toast config={toastConfig} position="top" topOffset={60} />
+        </DraxProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );

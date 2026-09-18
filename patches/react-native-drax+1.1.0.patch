@@ -1,0 +1,43 @@
+diff --git a/node_modules/react-native-drax/src/HoverLayer.tsx b/node_modules/react-native-drax/src/HoverLayer.tsx
+index 41031b3..091f99b 100644
+--- a/node_modules/react-native-drax/src/HoverLayer.tsx
++++ b/node_modules/react-native-drax/src/HoverLayer.tsx
+@@ -69,7 +69,9 @@ export const HoverLayer = memo(
+     const flatHoverDragReleasedStyle = hs?.hoverDragReleasedStyle ?? null;
+ 
+     // Position style: applied to the outer full-screen container.
+-    // Only handles positioning (translate) and visibility (opacity).
++    // Only handles positioning (left/top) and visibility (opacity).
++    // Patched from animated `transform` to animated `left/top` to work around
++    // drax issue #267 (hover copy renders blank under Fabric on iOS).
+     const positionStyle = useAnimatedStyle(() => {
+       const phase = dragPhaseSV.value;
+       if (phase === 'idle') {
+@@ -77,10 +79,8 @@ export const HoverLayer = memo(
+       }
+       return {
+         opacity: 1,
+-        transform: [
+-          { translateX: hoverPositionSV.value.x },
+-          { translateY: hoverPositionSV.value.y },
+-        ] as const,
++        left: hoverPositionSV.value.x,
++        top: hoverPositionSV.value.y,
+       };
+     });
+ 
+@@ -152,11 +152,12 @@ export const HoverLayer = memo(
+ 
+ const styles = StyleSheet.create({
+   container: {
+-    ...StyleSheet.absoluteFillObject,
++    position: 'absolute',
++    top: 0,
++    left: 0,
+     // Default hidden — useAnimatedStyle overrides to opacity:1 when dragging.
+     // Prevents a one-frame flash on first mount before the animated style evaluates.
+     opacity: 0,
+-    transformOrigin: 'top left',
+   },
+   content: {
+     // Shrink-wrap to content width — without this the inner view stretches

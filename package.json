@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "scripts": {
+    "postinstall": "patch-package",
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
@@ -29,7 +30,7 @@
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
     "react-native": "0.86.3",
-    "react-native-draggable-flatlist": "^4.0.3",
+    "react-native-drax": "^1.1.0",
     "react-native-gesture-handler": "~2.32.0",
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
@@ -44,6 +45,7 @@
   "devDependencies": {
     "@types/node": "^25.9.1",
     "@types/react": "~19.2.4",
+    "patch-package": "^8.0.1",
     "typescript": "~6.0.3"
   },
   "private": true

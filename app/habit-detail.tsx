@@ -20,7 +20,8 @@ import { HabitWhy } from '@/types';
 import HelpTooltip from '@/components/HelpTooltip';
 import Toast from 'react-native-toast-message';
 import { Image } from 'expo-image';
-import { NestableScrollContainer, NestableDraggableFlatList, RenderItemParams } from 'react-native-draggable-flatlist';
+import { DraxList } from 'react-native-drax';
+import { PlainList } from '@/components/PlainList';
 
 // ── Icons ──
 
@@ -560,7 +561,7 @@ export default function HabitDetailScreen() {
         </TouchableOpacity>
       </View>
 
-      <NestableScrollContainer
+      <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
@@ -585,34 +586,28 @@ export default function HabitDetailScreen() {
           />
           {reordering ? (
             <View style={{ marginHorizontal: 24, marginTop: 12, backgroundColor: colors.surface, borderRadius: 16, overflow: 'hidden' }}>
-              <NestableDraggableFlatList
+              <DraxList<HabitWhy>
+                component={PlainList}
                 data={whys}
                 keyExtractor={(item) => item.id}
-                onDragEnd={({ data }) => handleReorderWhys(data)}
-                scrollEnabled={false}
-                renderItem={({ item, drag, isActive }: RenderItemParams<HabitWhy>) => (
-                  <TouchableOpacity
-                    onPressIn={drag}
-                    disabled={isActive}
-                    activeOpacity={0.7}
-                  >
-                    <View style={[styles.reorderRow, { borderBottomColor: colors.border }]}>
-                      <View style={[styles.reorderColor, { backgroundColor: item.color }]} />
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ fontFamily: 'Nunito_700Bold', fontSize: 14, color: colors.textPrimary }} numberOfLines={1}>
-                          {item.type === 'image' ? (item.caption || 'Image why') : (item.text_content || 'Text why')}
-                        </Text>
-                        <Text style={{ fontFamily: 'Nunito_500Medium', fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
-                          {item.type === 'image' ? 'Photo' : 'Text'}
-                        </Text>
-                      </View>
-                      <View style={{ gap: 2, paddingRight: 4 }}>
-                        {[0, 1, 2].map((i) => (
-                          <View key={i} style={{ width: 16, height: 2, borderRadius: 999, backgroundColor: colors.textTertiary, opacity: 0.6 }} />
-                        ))}
-                      </View>
+                onReorder={({ data }) => handleReorderWhys(data)}
+                renderItem={({ item }) => (
+                  <View style={[styles.reorderRow, { borderBottomColor: colors.border, backgroundColor: colors.surface }]}>
+                    <View style={[styles.reorderColor, { backgroundColor: item.color }]} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontFamily: 'Nunito_700Bold', fontSize: 14, color: colors.textPrimary }} numberOfLines={1}>
+                        {item.type === 'image' ? (item.caption || 'Image why') : (item.text_content || 'Text why')}
+                      </Text>
+                      <Text style={{ fontFamily: 'Nunito_500Medium', fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
+                        {item.type === 'image' ? 'Photo' : 'Text'}
+                      </Text>
                     </View>
-                  </TouchableOpacity>
+                    <View style={{ gap: 2, paddingRight: 4 }}>
+                      {[0, 1, 2].map((i) => (
+                        <View key={i} style={{ width: 16, height: 2, borderRadius: 999, backgroundColor: colors.textTertiary, opacity: 0.6 }} />
+                      ))}
+                    </View>
+                  </View>
                 )}
               />
             </View>
@@ -785,7 +780,7 @@ export default function HabitDetailScreen() {
             />
           </View>
         </View>
-      </NestableScrollContainer>
+      </ScrollView>
     </View>
   );
 }

@@ -7,13 +7,14 @@ import {
   Alert,
   StyleSheet,
 } from 'react-native';
-import { NestableScrollContainer, NestableDraggableFlatList, RenderItemParams } from 'react-native-draggable-flatlist';
+import { DraxList } from 'react-native-drax';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useHabitStore } from '@/stores/habitStore';
 import { Habit } from '@/types';
 import { Svg, Path, Rect } from 'react-native-svg';
 import Toast from 'react-native-toast-message';
+import { PlainList } from '@/components/PlainList';
 
 // ─── Icons ───
 
@@ -64,13 +65,11 @@ function HabitListRow({
   habit,
   archived,
   onPress,
-  onDrag,
   colors,
 }: {
   habit: Habit;
   archived?: boolean;
   onPress: () => void;
-  onDrag?: () => void;
   colors: any;
 }) {
   const scheduleLabel =
@@ -87,7 +86,7 @@ function HabitListRow({
       <View
         style={[
           styles.habitRow,
-          { borderBottomColor: colors.border, opacity: archived ? 0.7 : 1 },
+          { borderBottomColor: colors.border, backgroundColor: colors.surface, opacity: archived ? 0.7 : 1 },
         ]}
       >
         <View style={[styles.colorBar, { backgroundColor: habit.color ? (colors[habit.color] || habit.color) : colors.accent }]} />
@@ -131,14 +130,14 @@ function HabitListRow({
             </Text>
           </View>
         ) : (
-          <TouchableOpacity onPressIn={onDrag} style={styles.dragHandle}>
+          <View style={styles.dragHandle}>
             {[0, 1, 2].map((i) => (
               <View
                 key={i}
                 style={[styles.dragLine, { backgroundColor: colors.textTertiary }]}
               />
             ))}
-          </TouchableOpacity>
+          </View>
         )}
       </View>
     </TouchableOpacity>
@@ -210,7 +209,7 @@ export default function HabitsManageScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <NestableScrollContainer contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={{ height: 50 }} />
 
         {/* Back button */}
@@ -307,17 +306,16 @@ export default function HabitsManageScreen() {
               overflow: 'hidden',
             }}
           >
-            <NestableDraggableFlatList
+            <DraxList<Habit>
+              component={PlainList}
               data={habits}
               keyExtractor={(item) => item.id}
-              onDragEnd={({ data }) => handleReorder(data)}
-              scrollEnabled={false}
-              renderItem={({ item, drag, isActive }: RenderItemParams<Habit>) => (
+              onReorder={({ data }) => handleReorder(data)}
+              renderItem={({ item }) => (
                 <HabitListRow
                   habit={item}
                   colors={colors}
                   onPress={() => handleArchive(item)}
-                  onDrag={drag}
                 />
               )}
             />
@@ -410,7 +408,7 @@ export default function HabitsManageScreen() {
             </View>
           </View>
         )}
-      </NestableScrollContainer>
+      </ScrollView>
     </View>
   );
 }
