@@ -35,7 +35,7 @@ import AnimatedPressable from '@/components/AnimatedPressable';
 import FadeInView from '@/components/FadeInView';
 import OdometerNumber from '@/components/OdometerNumber';
 import { AppState } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import { todayLocal } from '@/utils/date';
 
 // Returns greeting based on time of day

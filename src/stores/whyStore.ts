@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import { HabitWhy } from '@/types';
-import { File } from 'expo-file-system/next';
+import { File } from 'expo-file-system';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 interface WhyState {
   whysByHabit: Record<string, HabitWhy[]>;

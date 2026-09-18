@@ -30,7 +30,7 @@ export default function TabsLayout() {
         options={{
           title: 'Today',
           tabBarIcon: ({ color, focused }) => (
-            <IconHome size={24} color={color} filled={focused} />
+            <IconHome size={24} color={color as string} filled={focused} />
           ),
         }}
       />
@@ -39,7 +39,7 @@ export default function TabsLayout() {
         options={{
           title: 'Journey',
           tabBarIcon: ({ color, focused }) => (
-            <IconChart size={24} color={color} filled={focused} />
+            <IconChart size={24} color={color as string} filled={focused} />
           ),
         }}
       />
@@ -48,7 +48,7 @@ export default function TabsLayout() {
         options={{
           title: 'Settings',
           tabBarIcon: ({ color, focused }) => (
-            <IconGear size={24} color={color} filled={focused} />
+            <IconGear size={24} color={color as string} filled={focused} />
           ),
         }}
       />
