@@ -388,16 +388,22 @@ function RestDayContent({ totalShownUp }: { totalShownUp: number }) {
 function PlusFAB({ onPress }: { onPress: () => void }) {
   const { colors } = useTheme();
 
+  // Position is on the wrapping View so the FAB sits at bottom-right of the
+  // screen regardless of what's rendered above. AnimatedPressable puts its
+  // style prop on its inner Animated.View, so position: 'absolute' on that
+  // inner element would only be relative to the zero-sized outer Pressable.
   return (
-    <AnimatedPressable
-      style={[styles.fab, { backgroundColor: colors.accent }]}
-      onPress={onPress}
-      scaleValue={0.9}
-      accessibilityLabel="Create new habit"
-      accessibilityRole="button"
-    >
-      <IconPlus size={26} color="#fff" strokeWidth={2.4} />
-    </AnimatedPressable>
+    <View style={styles.fabWrapper} pointerEvents="box-none">
+      <AnimatedPressable
+        style={[styles.fab, { backgroundColor: colors.accent }]}
+        onPress={onPress}
+        scaleValue={0.9}
+        accessibilityLabel="Create new habit"
+        accessibilityRole="button"
+      >
+        <IconPlus size={26} color="#fff" strokeWidth={2.4} />
+      </AnimatedPressable>
+    </View>
   );
 }
 
@@ -451,15 +457,12 @@ export default function HomeScreen() {
     // Recompute today's scheduled habits from the freshly-fetched stores
     const freshHabits = useHabitStore.getState().habits;
     const freshCompletions = useCompletionStore.getState().todaysCompletions;
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
     const dayMap: Record<number, string> = {
       0: 'sun', 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat',
     };
     const todayLabel = dayMap[new Date().getDay()];
     const scheduledIds = freshHabits
       .filter((h) => {
-        if (new Date(h.created_at) >= startOfToday) return false;
         if (h.schedule_type === 'everyday') return true;
         return h.scheduled_days?.includes(todayLabel as any);
       })
@@ -536,16 +539,12 @@ export default function HomeScreen() {
     }
   }, [pendingMilestone]);
 
-  // Only show habits scheduled for today. Habits added today don't count toward
-  // today's streak - they start applying tomorrow. This prevents newly-created
-  // habits from silently invalidating a day that was already earned.
+  // Habits scheduled for today. Includes habits created today so a brand-new user
+  // sees their first habit immediately. Idempotency of incrementStreak() (via
+  // last_incremented_date) protects existing users from over-count if they add a
+  // habit after streak was already earned.
   const todaysHabits = useMemo(() => {
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-
     return habits.filter((habit) => {
-      if (new Date(habit.created_at) >= startOfToday) return false;
-
       if (habit.schedule_type === 'everyday') return true;
       const dayMap: Record<number, string> = {
         0: 'sun', 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat',
@@ -980,10 +979,12 @@ const styles = StyleSheet.create({
   },
 
   // FAB
-  fab: {
+  fabWrapper: {
     position: 'absolute',
     right: 20,
     bottom: 10, // above the tab bar
+  },
+  fab: {
     width: 56,
     height: 56,
     borderRadius: 999,
