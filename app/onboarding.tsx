@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import FadeInView from '@/components/FadeInView';
 import AnimatedPressable from '@/components/AnimatedPressable';
 import {
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Switch,
   StyleSheet,
+  Animated,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
@@ -23,7 +24,7 @@ import { useAuthStore } from '@/stores/authStore';
 
 // ── Progress dots ──
 
-function OnbProgress({ current, total = 5 }: { current: number; total?: number }) {
+function OnbProgress({ current, total = 3 }: { current: number; total?: number }) {
   const { colors } = useTheme();
   return (
     <View style={styles.progressRow}>
@@ -233,26 +234,41 @@ function LoopNode({
   accent?: boolean;
 }) {
   const { colors } = useTheme();
+  // Animate the accent state so the "active" node fades in/out smoothly as
+  // the parent cycles through the loop.
+  const anim = useRef(new Animated.Value(accent ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: accent ? 1 : 0,
+      duration: 500,
+      useNativeDriver: false,
+    }).start();
+  }, [accent]);
+
+  const borderColor = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [colors.border, colors.accent],
+  });
+
   return (
     <View style={styles.loopNode}>
-      <View
+      <Animated.View
         style={[
           styles.loopIcon,
           {
             backgroundColor: colors.surface,
-            borderColor: accent ? colors.accent : colors.border,
-            ...(accent && {
-              shadowColor: colors.accent,
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.2,
-              shadowRadius: 18,
-              elevation: 6,
-            }),
+            borderColor,
+            shadowColor: colors.accent,
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: anim.interpolate({ inputRange: [0, 1], outputRange: [0, 0.25] }),
+            shadowRadius: 18,
+            transform: [{ scale: anim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.08] }) }],
           },
         ]}
       >
         {icon}
-      </View>
+      </Animated.View>
       <Text style={[styles.loopLabel, { color: colors.textPrimary }]}>{label}</Text>
       <Text style={[styles.loopSub, { color: colors.textSecondary }]}>{sub}</Text>
     </View>
@@ -263,6 +279,16 @@ function LoopNode({
 
 function StepIdentity({ onCreateHabit }: { onCreateHabit: () => void }) {
   const { colors } = useTheme();
+
+  // Cycle the "active" node through the three loop stages every 1.4 seconds so
+  // the diagram feels alive and communicates that the rhythm is a repeated cycle.
+  const [activeLoopIndex, setActiveLoopIndex] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveLoopIndex((prev) => (prev + 1) % 3);
+    }, 1400);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <View style={{ flex: 1 }}>
@@ -296,20 +322,22 @@ function StepIdentity({ onCreateHabit }: { onCreateHabit: () => void }) {
           <LoopNode
             label="Pledge"
             sub="Morning"
-            accent
+            accent={activeLoopIndex === 0}
             icon={<SunriseLoopIcon color={colors.accent} />}
           />
           <ArrowIcon color={colors.textTertiary} />
           <LoopNode
             label="Do"
             sub="Throughout the day"
-            icon={<CheckCircleIcon color={colors.textSecondary} />}
+            accent={activeLoopIndex === 1}
+            icon={<CheckCircleIcon color={colors.accent} />}
           />
           <ArrowIcon color={colors.textTertiary} />
           <LoopNode
             label="Reflect"
             sub="Evening"
-            icon={<MoonLoopIcon color={colors.textSecondary} />}
+            accent={activeLoopIndex === 2}
+            icon={<MoonLoopIcon color={colors.accent} />}
           />
         </View>
         <View style={[styles.loopAffirm, { backgroundColor: colors.bg }]}>
@@ -446,7 +474,7 @@ function StepRhythm({ onFinish }: { onFinish: () => void }) {
   return (
     <View style={{ flex: 1 }}>
       <View style={{ height: 50 }} />
-      <OnbProgress current={4} />
+      <OnbProgress current={3} />
 
       <View style={{ paddingHorizontal: 32, paddingTop: 36 }}>
         <Text style={[styles.eyebrow, { color: colors.accent }]}>Your rhythm</Text>
