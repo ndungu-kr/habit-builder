@@ -22,6 +22,7 @@ import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
 import AnimatedPressable from '@/components/AnimatedPressable';
 import FadeInView from '@/components/FadeInView';
+import { LinearGradient } from 'expo-linear-gradient';
 
 // Progress dots - shows which habit you're pledging to
 function PledgeProgress({ current, total }: { current: number; total: number }) {
@@ -221,6 +222,7 @@ function PledgeHabit({
 
     if (why.type === 'image' && why.image_url) {
       const imgRatio = why.image_aspect_ratio || 3 / 4;
+      const trimmedCaption = why.caption?.trim();
       return (
         <View
           key={why.id}
@@ -231,6 +233,7 @@ function PledgeHabit({
             overflow: 'hidden',
             alignSelf: 'center',
           }}
+          accessibilityLabel={trimmedCaption ? `Image why: ${trimmedCaption}` : 'Image why'}
         >
           <Image
             source={{ uri: why.image_url }}
@@ -239,6 +242,17 @@ function PledgeHabit({
             cachePolicy="disk"
             transition={200}
           />
+          {trimmedCaption ? (
+            <LinearGradient
+              colors={['transparent', 'rgba(0,0,0,0.75)']}
+              style={styles.pledgeCaptionOverlay}
+              pointerEvents="none"
+            >
+              <Text style={styles.pledgeCaptionText} numberOfLines={2}>
+                {trimmedCaption}
+              </Text>
+            </LinearGradient>
+          ) : null}
         </View>
       );
     }
@@ -661,6 +675,22 @@ const styles = StyleSheet.create({
     lineHeight: 30,
     letterSpacing: -0.2,
     textAlign: 'center',
+  },
+  pledgeCaptionOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingTop: 32,
+    paddingBottom: 14,
+    paddingHorizontal: 18,
+  },
+  pledgeCaptionText: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 15,
+    color: '#fff',
+    lineHeight: 21,
+    letterSpacing: -0.1,
   },
   pledgeStatement: {
     fontFamily: 'Nunito_500Medium',

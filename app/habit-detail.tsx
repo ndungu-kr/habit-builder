@@ -22,6 +22,7 @@ import Toast from 'react-native-toast-message';
 import { Image } from 'expo-image';
 import { DraxList } from 'react-native-drax';
 import { PlainList } from '@/components/PlainList';
+import { LinearGradient } from 'expo-linear-gradient';
 
 // ── Icons ──
 
@@ -164,8 +165,12 @@ const heroStyles = StyleSheet.create({
 
 function WhyCardInner({ why, featured }: { why: HabitWhy; featured: boolean }) {
   if (why.type === 'image' && why.image_url) {
+    const trimmedCaption = why.caption?.trim();
     return (
-      <View style={[whyStyles.card, { backgroundColor: why.color, padding: 0, paddingHorizontal: 0, minHeight: 0 }]}>
+      <View
+        style={[whyStyles.card, { backgroundColor: why.color, padding: 0, paddingHorizontal: 0, minHeight: 0 }]}
+        accessibilityLabel={trimmedCaption ? `Image why: ${trimmedCaption}` : 'Image why'}
+      >
         {featured && (
           <View style={[whyStyles.starBadge, { zIndex: 2 }]}>
             <StarIcon />
@@ -182,6 +187,17 @@ function WhyCardInner({ why, featured }: { why: HabitWhy; featured: boolean }) {
           cachePolicy="disk"
           transition={200}
         />
+        {trimmedCaption ? (
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.75)']}
+            style={whyStyles.captionOverlayCompact}
+            pointerEvents="none"
+          >
+            <Text style={whyStyles.captionTextCompact} numberOfLines={2}>
+              {trimmedCaption}
+            </Text>
+          </LinearGradient>
+        ) : null}
       </View>
     );
   }
@@ -235,8 +251,24 @@ const whyStyles = StyleSheet.create({
     fontFamily: 'Nunito_600SemiBold', fontSize: 15,
     color: '#fff', lineHeight: 21, letterSpacing: -0.05, textAlign: 'center',
   },
-  addCard: {
-    height: 168, borderRadius: 16, borderWidth: 2, borderStyle: 'dashed',
+  captionOverlayCompact: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingTop: 22,
+    paddingBottom: 10,
+    paddingHorizontal: 12,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+  },
+  captionTextCompact: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 12.5,
+    color: '#fff',
+    letterSpacing: -0.05,
+  },
+  addCard: {    height: 168, borderRadius: 16, borderWidth: 2, borderStyle: 'dashed',
     alignItems: 'center', justifyContent: 'center', gap: 8, opacity: 0.85,
   },
   addCircle: {
