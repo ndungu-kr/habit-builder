@@ -185,27 +185,27 @@ function StepWelcome({ onNext }: { onNext: () => void }) {
           </FadeInView>
           <FadeInView delay={150}>
             <Text style={[styles.welcomeHeadline, { color: colors.textPrimary }]}>
-              Build something meaningful.
+              Remember why you started.
             </Text>
           </FadeInView>
           <FadeInView delay={300}>
             <Text style={[styles.welcomeBody, { color: colors.textSecondary }]}>
-              The same tools that help people overcome their hardest challenges, applied to the
-              habits you want to build.
+              Most habit apps give you a checkbox. This one keeps your reasons close - the ones
+              that will pull you through on the days you don't feel like it.
             </Text>
           </FadeInView>
           <FadeInView delay={450}>
           <View style={styles.featureDots}>
             <Text style={[styles.featureDotText, { color: colors.textTertiary }]}>
-              Daily pledges
+              Your reasons
             </Text>
             <View style={[styles.dotSep, { backgroundColor: colors.textTertiary }]} />
             <Text style={[styles.featureDotText, { color: colors.textTertiary }]}>
-              Honest reflection
+              A daily reminder
             </Text>
             <View style={[styles.dotSep, { backgroundColor: colors.textTertiary }]} />
             <Text style={[styles.featureDotText, { color: colors.textTertiary }]}>
-              Real progress
+              Real reflection
             </Text>
           </View>
           </FadeInView>
@@ -271,17 +271,17 @@ function StepIdentity({ onCreateHabit }: { onCreateHabit: () => void }) {
 
       <View style={{ paddingHorizontal: 32, paddingTop: 36 }}>
         <FadeInView delay={0}>
-          <Text style={[styles.eyebrow, { color: colors.accent }]}>The shift</Text>
+          <Text style={[styles.eyebrow, { color: colors.accent }]}>How it works</Text>
         </FadeInView>
         <FadeInView delay={150}>
           <Text style={[styles.stepHeadline, { color: colors.textPrimary }]}>
-            Who do you want to become?
+            Your reasons, every day.
           </Text>
         </FadeInView>
         <FadeInView delay={300}>
           <Text style={[styles.stepBody, { color: colors.textSecondary }]}>
-            Most apps track what you do. This one helps you become who you want to be - by
-            repeating a small daily loop.
+            You'll write down why a habit matters to you. Every morning, you'll see those
+            reasons. Every evening, you'll reflect on how they landed.
           </Text>
         </FadeInView>
       </View>
@@ -290,7 +290,7 @@ function StepIdentity({ onCreateHabit }: { onCreateHabit: () => void }) {
       <FadeInView delay={450}>
       <View style={[styles.loopCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.loopCardLabel, { color: colors.textTertiary }]}>
-          Every scheduled day
+          The daily rhythm
         </Text>
         <View style={styles.loopRow}>
           <LoopNode
@@ -314,11 +314,11 @@ function StepIdentity({ onCreateHabit }: { onCreateHabit: () => void }) {
         </View>
         <View style={[styles.loopAffirm, { backgroundColor: colors.bg }]}>
           <Text style={[styles.loopAffirmText, { color: colors.textPrimary }]}>
-            You are someone who{' '}
+            The habit isn't the point.{' '}
             <Text style={{ color: colors.accent, fontFamily: 'Nunito_800ExtraBold' }}>
-              shows up
+              The reason
             </Text>
-            . Today proved it.
+            {' '}behind it is.
           </Text>
         </View>
       </View>
@@ -327,7 +327,7 @@ function StepIdentity({ onCreateHabit }: { onCreateHabit: () => void }) {
       <View style={{ flex: 1 }} />
 
       <OnbFooter>
-        <OnbCTA label="Create my first habit" onPress={onCreateHabit} />
+        <OnbCTA label="Add my first reason" onPress={onCreateHabit} />
       </OnbFooter>
     </View>
   );
@@ -449,12 +449,13 @@ function StepRhythm({ onFinish }: { onFinish: () => void }) {
       <OnbProgress current={4} />
 
       <View style={{ paddingHorizontal: 32, paddingTop: 36 }}>
-        <Text style={[styles.eyebrow, { color: colors.accent }]}>Step 4</Text>
+        <Text style={[styles.eyebrow, { color: colors.accent }]}>Your rhythm</Text>
         <Text style={[styles.stepHeadline, { color: colors.textPrimary }]}>
-          When should we check in?
+          Two moments to reconnect.
         </Text>
         <Text style={[styles.stepBody, { color: colors.textSecondary }]}>
-          Two gentle moments a day. We'll only ping you on scheduled days.
+          Morning to see your reasons. Evening to look back on the day. We'll only ping you on
+          scheduled days - never on rest days.
         </Text>
       </View>
 
@@ -463,7 +464,7 @@ function StepRhythm({ onFinish }: { onFinish: () => void }) {
         <View style={[styles.tilesCard, { backgroundColor: colors.surface }]}>
           <RhythmTile
             eyebrowText="Morning"
-            label="When do you want to set your intention?"
+            label="When do you want to see your reasons?"
             time={formatTime(morningTime)}
             icon={<SunriseLoopIcon color={colors.accent} />}
             onPress={() => {
@@ -473,7 +474,7 @@ function StepRhythm({ onFinish }: { onFinish: () => void }) {
           />
           <RhythmTile
             eyebrowText="Evening"
-            label="When do you want to reflect on your day?"
+            label="When do you want to reflect?"
             time={formatTime(eveningTime)}
             icon={<MoonLoopIcon color={colors.accent} />}
             last
